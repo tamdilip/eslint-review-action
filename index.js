@@ -41,6 +41,7 @@ async function runScript() {
             line: options.line,
             path: options.path
         });
+        console.log(commonComments);
         /* octokit.issues.createComment({
             owner,
             repo,
@@ -49,7 +50,7 @@ async function runScript() {
         }); */
     });
 
-    errorFiles.forEach(async (errorFile) => {
+    for await (let errorFile of errorFiles) {
         const path = errorFile.filePath.replace(process.cwd() + '/', '');
         console.log(path);
         const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
@@ -69,7 +70,29 @@ async function runScript() {
         catch (error) {
             console.log('tryerror', error);
         }
-    });
+    }
+
+    /* errorFiles.forEach(async (errorFile) => {
+        const path = errorFile.filePath.replace(process.cwd() + '/', '');
+        console.log(path);
+        const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
+        const url_parts = url.parse(prFilesWithError.contents_url, true);
+        const commit_id = url_parts.query.ref;
+        try {
+            await octokit.pulls.createComment({
+                owner,
+                repo,
+                pull_number,
+                body: errorFile.messages[0].message,
+                commit_id,
+                path,
+                line: errorFile.messages[0].line
+            });
+        }
+        catch (error) {
+            console.log('tryerror', error);
+        }
+    }); */
 
     let commentsCountLabel = "**`⚠️ " + commonComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
     const overallCOmmentBody = commonComments.reduce((acc, val) => {
