@@ -35,7 +35,7 @@ async function runScript() {
 
     octokit.hook.error("request", async (error, options) => {
         console.log('hookerror');
-        console.log(error, options);
+        console.log(options);
         octokit.issues.createComment({
             owner,
             repo,
@@ -62,14 +62,7 @@ async function runScript() {
                 line: errorFile.messages[0].line
             });
         } catch (error) {
-            console.log('tryerror');
-            console.log(error);
-            await octokit.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body: "LINE: " + errorFile.messages[0].line + " :: ERROR:" + errorFile.messages[0].message
-            });
+            console.log('tryerror', error);
         }
 
     });
