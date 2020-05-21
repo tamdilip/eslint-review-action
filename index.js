@@ -33,7 +33,18 @@ async function runScript() {
 
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
 
-    errorFiles.forEach(errorFile => {
+    octokit.hook.error("request", async (error, options) => {
+        console.log('hookerror');
+        console.log(error, options);
+        octokit.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body: "LINE: x :: ERROR: xxxxxx"
+        });
+    });
+
+    errorFiles.forEach(async (errorFile) => {
         const path = errorFile.filePath.replace(process.cwd() + '/', '');
         console.log(path);
         const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
@@ -41,7 +52,7 @@ async function runScript() {
         const commit_id = url_parts.query.ref;
 
         try {
-            octokit.pulls.createComment({
+            await octokit.pulls.createComment({
                 owner,
                 repo,
                 pull_number,
@@ -51,8 +62,9 @@ async function runScript() {
                 line: errorFile.messages[0].line
             });
         } catch (error) {
+            console.log('tryerror');
             console.log(error);
-            octokit.issues.createComment({
+            await octokit.issues.createComment({
                 owner,
                 repo,
                 issue_number,
