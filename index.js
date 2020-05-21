@@ -20,6 +20,7 @@ async function runScript() {
         pull_number
     });
     const filenames = changedFiles.map(f => f.filename);
+    console.log(filenames[0]);
 
     const cli = new CLIEngine({
         envs: ["browser", "mocha"],
@@ -29,22 +30,25 @@ async function runScript() {
         }
     });
     const { results: reportContents } = cli.executeOnFiles(filenames);
-    console.log(process.cwd());
 
-    /* changedFiles.forEach(f => {
-        const url_parts = url.parse(f.contents_url, true);
+    const errorFiles = reportContents.filter(es => es.errorCount > 0);
+
+    errorFiles.forEach(errorFile => {
+        console.log(errorFile.filePath.replace(process.cwd() + '/', ''));
+        const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == errorFile.filePath.replace(process.cwd() + '/', ''));
+        const url_parts = url.parse(prFilesWithError.contents_url, true);
         const commit_id = url_parts.query.ref;
 
         octokit.pulls.createComment({
             owner,
             repo,
             pull_number,
-            body: reportContents.filter(es => es.errorCount > 0)[0].messages[0].message,
+            body: errorFile.messages[0].message,
             commit_id,
             path: filename,
-            line: reportContents.filter(es => es.errorCount > 0)[0].messages[0].line
+            line: errorFile.messages[0].line
         });
-    }); */
+    });
 
 }
 
