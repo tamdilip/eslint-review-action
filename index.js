@@ -34,13 +34,11 @@ async function runScript() {
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
 
     octokit.hook.error("request", async (error, options) => {
-        console.log('hookerror');
-        console.log(options);
         octokit.issues.createComment({
             owner,
             repo,
             issue_number,
-            body: "LINE: x :: ERROR: xxxxxx"
+            body: "FILE: " + options.path + " :: LINE: " + options.line + " :: ERROR: " + options.body
         });
     });
 
