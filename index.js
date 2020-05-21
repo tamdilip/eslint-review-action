@@ -11,7 +11,7 @@ async function runScript() {
         const eslint = new ESLint();
       
         // 2. Lint files.
-        const results = await eslint.lintFiles(["app/**/*.js"]);
+        const results = await eslint.lintFiles(["app/router.js"]);
       
         // 3. Format the results.
         const formatter = await eslint.loadFormatter("json");
