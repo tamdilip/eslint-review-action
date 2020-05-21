@@ -9,7 +9,7 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const context = github.context;
-    const { repo: { owner, repo } } = context;
+    const { repo: { owner, repo }, issue: { number: issue_number } } = context;
 
     const eventPath = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
     const pull_number = eventPath.pull_request.number;
@@ -40,15 +40,26 @@ async function runScript() {
         const url_parts = url.parse(prFilesWithError.contents_url, true);
         const commit_id = url_parts.query.ref;
 
-        octokit.pulls.createComment({
-            owner,
-            repo,
-            pull_number,
-            body: errorFile.messages[0].message,
-            commit_id,
-            path,
-            line: errorFile.messages[0].line
-        });
+        try {
+            octokit.pulls.createComment({
+                owner,
+                repo,
+                pull_number,
+                body: errorFile.messages[0].message,
+                commit_id,
+                path,
+                line: errorFile.messages[0].line
+            });
+        } catch (error) {
+            console.log(error);
+            octokit.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: "LINE: " + errorFile.messages[0].line + " :: ERROR:" + errorFile.messages[0].message
+            });
+        }
+
     });
 
 }
