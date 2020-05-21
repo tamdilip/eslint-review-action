@@ -14,12 +14,12 @@ async function runScript() {
     const eventPath = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
     const pull_number = eventPath.pull_request.number;
 
-    const changedFiles = await octokit.pulls.listFiles({
+    const { data: changedFiles } = await octokit.pulls.listFiles({
         owner,
         repo,
         pull_number
     });
-    const filename = changedFiles.data[0].filename;
+    const filenames = changedFiles.map(f => f.filename);
 
     const cli = new CLIEngine({
         envs: ["browser", "mocha"],
@@ -28,20 +28,23 @@ async function runScript() {
             semi: 2
         }
     });
-    const { results: reportContents } = cli.executeOnFiles([filename]);
+    const { results: reportContents } = cli.executeOnFiles(filenames);
+    console.log(process.cwd());
 
-    const url_parts = url.parse(changedFiles.data[0].contents_url, true);
-    const commit_id = url_parts.query.ref;
+    /* changedFiles.forEach(f => {
+        const url_parts = url.parse(f.contents_url, true);
+        const commit_id = url_parts.query.ref;
 
-    octokit.pulls.createComment({
-        owner,
-        repo,
-        pull_number,
-        body: reportContents.filter(es => es.errorCount > 0)[0].messages[0].message,
-        commit_id,
-        path: filename,
-        line: reportContents.filter(es => es.errorCount > 0)[0].messages[0].line
-    });
+        octokit.pulls.createComment({
+            owner,
+            repo,
+            pull_number,
+            body: reportContents.filter(es => es.errorCount > 0)[0].messages[0].message,
+            commit_id,
+            path: filename,
+            line: reportContents.filter(es => es.errorCount > 0)[0].messages[0].line
+        });
+    }); */
 
 }
 
