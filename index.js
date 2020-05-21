@@ -20,7 +20,6 @@ async function runScript() {
         pull_number
     });
     const filenames = changedFiles.map(f => f.filename);
-    console.log(filenames);
 
     const cli = new CLIEngine({
         envs: ["browser", "mocha"],
@@ -41,7 +40,18 @@ async function runScript() {
             line: options.line,
             path: options.path
         });
-        console.log(commonComments);
+
+        let markDownBody = "📌 **LINE**: " + options.line + "\r\n> ";
+        markDownBody = markDownBody + "❌ **ERROR**: " + options.body + "\r\n\r\n> ";
+
+        octokit.pulls.createComment({
+            owner,
+            repo,
+            pull_number,
+            body: markDownBody,
+            commit_id,
+            path: options.path
+        });
         /* octokit.issues.createComment({
             owner,
             repo,
@@ -52,7 +62,6 @@ async function runScript() {
 
     for await (let errorFile of errorFiles) {
         const path = errorFile.filePath.replace(process.cwd() + '/', '');
-        console.log(path);
         const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
         const url_parts = url.parse(prFilesWithError.contents_url, true);
         const commit_id = url_parts.query.ref;
