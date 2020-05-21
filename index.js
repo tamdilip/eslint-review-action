@@ -29,7 +29,7 @@ async function runScript() {
             semi: 2
         }
     });
-    const reportContents = cli.executeOnFiles([filename]);
+    const { results: reportContents } = cli.executeOnFiles([filename]);
     console.log(reportContents);
 
     const url_parts = url.parse(changedFiles.data[0].contents_url, true);
