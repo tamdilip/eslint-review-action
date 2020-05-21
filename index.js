@@ -23,14 +23,9 @@ async function runScript() {
     const filename = changedFiles.data[0].filename;
 
     const cli = new CLIEngine({
-        envs: ["browser", "mocha"],
-        useEslintrc: false,
-        rules: {
-            semi: 2
-        }
+        useEslintrc: true
     });
     const { results: reportContents } = cli.executeOnFiles([filename]);
-    console.log(reportContents);
 
     const url_parts = url.parse(changedFiles.data[0].contents_url, true);
     const commit_id = url_parts.query.ref;
