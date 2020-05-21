@@ -20,7 +20,7 @@ async function runScript() {
         pull_number
     });
     const filenames = changedFiles.map(f => f.filename);
-    console.log(filenames[0]);
+    console.log(filenames);
 
     const cli = new CLIEngine({
         envs: ["browser", "mocha"],
@@ -34,8 +34,9 @@ async function runScript() {
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
 
     errorFiles.forEach(errorFile => {
-        console.log(errorFile.filePath.replace(process.cwd() + '/', ''));
-        const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == errorFile.filePath.replace(process.cwd() + '/', ''));
+        const path = errorFile.filePath.replace(process.cwd() + '/', '');
+        console.log(path);
+        const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
         const url_parts = url.parse(prFilesWithError.contents_url, true);
         const commit_id = url_parts.query.ref;
 
@@ -45,7 +46,7 @@ async function runScript() {
             pull_number,
             body: errorFile.messages[0].message,
             commit_id,
-            path: filename,
+            path,
             line: errorFile.messages[0].line
         });
     });
