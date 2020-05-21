@@ -22,11 +22,7 @@ async function runScript() {
     const filename = changedFiles.data[0].filename;
 
     const cli = new CLIEngine({
-        envs: ["browser", "mocha"],
-        useEslintrc: true,
-        rules: {
-            semi: 2
-        }
+        cwd: process.cwd()
     });
     const { results: reportContents } = cli.executeOnFiles([filename]);
 
