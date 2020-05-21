@@ -21,6 +21,7 @@
   "dependencies": {
     "@actions/core": "^1.2.4",
     "@actions/github": "^2.2.0",
-    "@zeit/ncc": "^0.22.2"
+    "@zeit/ncc": "^0.22.2",
+    "eslint": "^7.0.0"
   }
 }
