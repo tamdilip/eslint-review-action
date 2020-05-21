@@ -24955,6 +24955,7 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
 
     const octokit = new github.GitHub(repoToken);
+    const context = github.context;
 
     const changedFiles = await octokit.pulls.listFiles({
         owner: context.repo.owner,
