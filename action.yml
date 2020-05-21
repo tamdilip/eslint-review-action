@@ -1,0 +1,9 @@
+name: 'eslint-pull-request'
+description: 'eslint specific file changes in a pull-request and add review comments'
+inputs:
+  repo-token:
+    description: 'Token used to interact with the Github API.'
+    required: true
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
