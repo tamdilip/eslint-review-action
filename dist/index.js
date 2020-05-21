@@ -24949,10 +24949,14 @@ async function runScript() {
     const fs = __webpack_require__(747);
 
     const ev = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-    console.log(ev);
     const prNum = ev.pull_request.number;
     console.log(prNum);
-    const changedFiles = await github.pulls.listFiles({
+
+    const repoToken = core.getInput('repo-token');
+
+    const octokit = new github.GitHub(repoToken);
+
+    const changedFiles = await octokit.pulls.listFiles({
         owner: context.repo.owner,
         repo: context.repo.repo,
         pull_number: prNum
@@ -24974,7 +24978,7 @@ async function runScript() {
     const url_parts = url.parse(changedFiles.data[0].contents_url, true);
     const commitId = url_parts.query.ref;
 
-    github.pulls.createComment({
+    octokit.pulls.createComment({
         owner: context.repo.owner,
         repo: context.repo.repo,
         pull_number: prNum,
