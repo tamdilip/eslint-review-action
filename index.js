@@ -33,13 +33,20 @@ async function runScript() {
 
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
 
+    let commonComments = [];
+
     octokit.hook.error("request", async (error, options) => {
-        octokit.issues.createComment({
+        commonComments.push({
+            body: options.body,
+            line: options.line,
+            path: options.path
+        });
+        /* octokit.issues.createComment({
             owner,
             repo,
             issue_number,
-            body: "**`⚠️ 3 :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> **LINE**: 1\r\n> **FILE**: app/components/post-list/component.js\r\n> **ERROR**: Parsing error: The keyword 'import' is reserved\r\n\r\n> **LINE**: 3\r\n> **FILE**: app/components/post-list/component.js\r\n> **ERROR**: Parsing error: The keyword 'import' is reserved"
-        });
+            body: "FILE: " + options.path + " :: LINE: " + options.line + " :: ERROR: " + options.body
+        }); */
     });
 
     errorFiles.forEach(async (errorFile) => {
@@ -48,7 +55,6 @@ async function runScript() {
         const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
         const url_parts = url.parse(prFilesWithError.contents_url, true);
         const commit_id = url_parts.query.ref;
-
         try {
             await octokit.pulls.createComment({
                 owner,
@@ -59,10 +65,25 @@ async function runScript() {
                 path,
                 line: errorFile.messages[0].line
             });
-        } catch (error) {
+        }
+        catch (error) {
             console.log('tryerror', error);
         }
+    });
 
+    let commentsCountLabel = "**`⚠️ " + commonComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
+    const overallCOmmentBody = commonComments.reduce((acc, val) => {
+        acc = acc + "**LINE**: " + val.line + "\r\n> ";
+        acc = acc + "**FILE**: " + val.path + "\r\n> ";
+        acc = acc + "**ERROR**: " + val.body + "\r\n\r\n> ";
+        return acc;
+    }, commentsCountLabel);
+
+    octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number,
+        body: overallCOmmentBody
     });
 
 }
