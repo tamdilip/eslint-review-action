@@ -7,24 +7,6 @@ async function runScript() {
 
     const CLIEngine = require("eslint").CLIEngine;
 
-    (async function main() {
-
-        const cli = new CLIEngine({
-            envs: ["browser", "mocha"],
-            useEslintrc: false,
-            rules: {
-                semi: 2
-            }
-        });
-
-        // lint myfile.js and all files in lib/
-        const report = cli.executeOnFiles(["app/router.js"]);
-        console.log(report);
-    })().catch((error) => {
-        process.exitCode = 1;
-        console.error(error);
-    });
-
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const context = github.context;
@@ -39,6 +21,15 @@ async function runScript() {
         pull_number
     });
     const filename = changedFiles.data[0].filename;
+
+    const cli = new CLIEngine({
+        envs: ["browser", "mocha"],
+        useEslintrc: false,
+        rules: {
+            semi: 2
+        }
+    });
+    const report = cli.executeOnFiles([filename]);
 
     const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
