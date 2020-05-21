@@ -38,7 +38,7 @@ async function runScript() {
             owner,
             repo,
             issue_number,
-            body: "FILE: " + options.path + " :: LINE: " + options.line + " :: ERROR: " + options.body
+            body: "**`⚠️ 3 :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> **LINE**: 1\r\n> **FILE**: app/components/post-list/component.js\r\n> **ERROR**: Parsing error: The keyword 'import' is reserved\r\n\r\n> **LINE**: 3\r\n> **FILE**: app/components/post-list/component.js\r\n> **ERROR**: Parsing error: The keyword 'import' is reserved"
         });
     });
 
