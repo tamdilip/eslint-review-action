@@ -4,25 +4,26 @@ async function runScript() {
     const path = require('path');
     const url = require('url');
     const fs = require('fs');
-    const { ESLint } = require("eslint");
+
+    const CLIEngine = require("eslint").CLIEngine;
 
     (async function main() {
-        // 1. Create an instance.
-        const eslint = new ESLint();
-      
-        // 2. Lint files.
-        const results = await eslint.lintFiles(["app/router.js"]);
-      
-        // 3. Format the results.
-        const formatter = await eslint.loadFormatter("json");
-        const resultText = formatter.format(results);
-      
-        // 4. Output it.
-        console.log(resultText);
-      })().catch((error) => {
+
+        const cli = new CLIEngine({
+            envs: ["browser", "mocha"],
+            useEslintrc: false,
+            rules: {
+                semi: 2
+            }
+        });
+
+        // lint myfile.js and all files in lib/
+        const report = cli.executeOnFiles(["app/router.js"]);
+        console.log(report);
+    })().catch((error) => {
         process.exitCode = 1;
         console.error(error);
-      });
+    });
 
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
