@@ -22,18 +22,9 @@ async function runScript() {
     });
     const filename = changedFiles.data[0].filename;
 
-    const cli = new CLIEngine({
-        envs: ["browser", "mocha"],
-        useEslintrc: false,
-        rules: {
-            semi: 2
-        }
-    });
+    const cli = new CLIEngine({ useEslintrc: false });
     const report = cli.executeOnFiles([filename]);
-
-    const reportPath = path.resolve('eslint_report.json');
-    const reportFile = fs.readFileSync(reportPath, 'utf-8')
-    const reportContents = JSON.parse(reportFile);
+    const reportContents = JSON.parse(report);
 
     const url_parts = url.parse(changedFiles.data[0].contents_url, true);
     const commit_id = url_parts.query.ref;
