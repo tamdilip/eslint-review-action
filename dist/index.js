@@ -839,15 +839,12 @@ async function runScript() {
     options.listeners = {
         stdout: (data) => {
             console.log('stdout');
-            console.log(data.toString());
         },
         stderr: (data) => {
             console.log('stderr');
-            console.log(data.toString());
         },
         errline: (data) => {
             console.log('errline');
-            console.log(data.toString());
         }
     };
 
@@ -871,6 +868,7 @@ async function runScript() {
     let commonComments = [];
 
     octokit.hook.error("request", async (error, options) => {
+        console.log('options', options);
         commonComments.push({
             body: options.body,
             line: options.line,
@@ -880,13 +878,19 @@ async function runScript() {
         let markDownBody = "📌 **LINE**: " + options.line + "\r\n> ";
         markDownBody = markDownBody + "❌ **ERROR**: " + options.body + "\r\n\r\n> ";
 
-        octokit.pulls.createComment({
+        /* octokit.pulls.createComment({
             owner,
             repo,
             pull_number,
             body: markDownBody,
             commit_id,
             path: options.path
+        }); */
+        octokit.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body: markDownBody
         });
         /* octokit.issues.createComment({
             owner,
@@ -901,6 +905,7 @@ async function runScript() {
         const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
         const url_parts = url.parse(prFilesWithError.contents_url, true);
         const commit_id = url_parts.query.ref;
+        console.log(commit_id);
         try {
             await octokit.pulls.createComment({
                 owner,
