@@ -11,7 +11,7 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const context = github.context;
-    console.log('context', context);
+    console.log('context', context.sha);
     const { repo: { owner, repo }, issue: { number: issue_number } } = context;
 
     const eventPath = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
@@ -81,16 +81,17 @@ async function runScript() {
         const commit_id = url_parts.query.ref;
 
         try {
-            console.log('errorMessages', errorFile.messages[0]);
-            await octokit.pulls.createComment({
-                owner,
-                repo,
-                pull_number,
-                body: errorFile.messages[0].message,
-                commit_id,
-                path,
-                line: errorFile.messages[0].line
-            });
+            for await (let message of errorFile.messages) {
+                await octokit.pulls.createComment({
+                    owner,
+                    repo,
+                    pull_number,
+                    body: message.message,
+                    commit_id,
+                    path,
+                    line: message.line
+                });
+            }
         }
         catch (error) {
             console.log('createComment error::', error);
