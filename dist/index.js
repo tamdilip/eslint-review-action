@@ -812,11 +812,18 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const context = github.context;
-    console.log('context', context.sha);
-    const { repo: { owner, repo }, issue: { number: issue_number } } = context;
+    const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
 
     const eventPath = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
     const pull_number = eventPath.pull_request.number;
+
+    const availableCommentsinPR = await octokit.pulls.listComments({
+        owner,
+        repo,
+        pull_number,
+    });
+    console.log('availableCommentsinPR', availableCommentsinPR);
+
 
     const { data: changedFiles } = await octokit.pulls.listFiles({
         owner,
@@ -902,7 +909,7 @@ async function runScript() {
 
     let commentsCountLabel = "**`⚠️ " + commonComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
     const overallCOmmentBody = commonComments.reduce((acc, val) => {
-        const link = `https://github.com/${owner}/${repo}/blob/master/${val.path}#L${val.line}`;
+        const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
         acc = acc + "📌 **LINE**: [" + val.line + "](" + link + ")\r\n> ";
         acc = acc + "📕 **FILE**: " + val.path + "\r\n> ";
         acc = acc + "❌ **ERROR**: " + val.body + "\r\n\r\n> ";
