@@ -834,7 +834,7 @@ async function runScript() {
     const { results: reportContents } = cli.executeOnFiles(filenames); */
 
 
-    await exec.exec('npm install -g eslint');
+    //await exec.exec('npm install -g eslint');
     await exec.exec('eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(', '));
     const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
