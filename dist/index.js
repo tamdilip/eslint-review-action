@@ -849,10 +849,9 @@ async function runScript() {
     };
 
     try {
-        console.log('npm run lint -- ' + filenames.join(' '));
         await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
     } catch (error) {
-        console.log('tryCatcherror');
+        console.log('Lint run error::', error);
     }
 
 
@@ -868,7 +867,6 @@ async function runScript() {
     let commonComments = [];
 
     octokit.hook.error("request", async (error, options) => {
-        console.log('options', options);
         commonComments.push({
             body: options.body,
             line: options.line,
@@ -878,20 +876,20 @@ async function runScript() {
         let markDownBody = "📌 **LINE**: " + options.line + "\r\n> ";
         markDownBody = markDownBody + "❌ **ERROR**: " + options.body + "\r\n\r\n> ";
 
-        /* octokit.pulls.createComment({
+        octokit.pulls.createComment({
             owner,
             repo,
             pull_number,
             body: markDownBody,
-            commit_id,
+            commit_id: options.commit_id,
             path: options.path
-        }); */
-        octokit.issues.createComment({
+        });
+        /* octokit.issues.createComment({
             owner,
             repo,
             issue_number,
             body: markDownBody
-        });
+        }); */
         /* octokit.issues.createComment({
             owner,
             repo,
@@ -905,7 +903,7 @@ async function runScript() {
         const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
         const url_parts = url.parse(prFilesWithError.contents_url, true);
         const commit_id = url_parts.query.ref;
-        console.log(commit_id);
+
         try {
             await octokit.pulls.createComment({
                 owner,
@@ -918,31 +916,9 @@ async function runScript() {
             });
         }
         catch (error) {
-            console.log('tryerror', error);
+            console.log('createComment error::', error);
         }
     }
-
-    /* errorFiles.forEach(async (errorFile) => {
-        const path = errorFile.filePath.replace(process.cwd() + '/', '');
-        console.log(path);
-        const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
-        const url_parts = url.parse(prFilesWithError.contents_url, true);
-        const commit_id = url_parts.query.ref;
-        try {
-            await octokit.pulls.createComment({
-                owner,
-                repo,
-                pull_number,
-                body: errorFile.messages[0].message,
-                commit_id,
-                path,
-                line: errorFile.messages[0].line
-            });
-        }
-        catch (error) {
-            console.log('tryerror', error);
-        }
-    }); */
 
     let commentsCountLabel = "**`⚠️ " + commonComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
     const overallCOmmentBody = commonComments.reduce((acc, val) => {
