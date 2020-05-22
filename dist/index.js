@@ -834,9 +834,28 @@ async function runScript() {
     const { results: reportContents } = cli.executeOnFiles(filenames); */
 
 
+
+    const options = {};
+    options.listeners = {
+        stdout: (data) => {
+            console.log('stdout');
+            console.log(data.toString());
+        },
+        stderr: (data) => {
+            console.log('stderr');
+            console.log(data.toString());
+        },
+        errline: (data) => {
+            console.log('errline');
+            console.log(data.toString());
+        }
+    };
+
+    await exec.exec('npm run lint -- ' + filenames.join(' '), options);
+
     //await exec.exec('npm install -g eslint');
     //await exec.exec('eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '));
-    await exec.exec('npm run lint -- ' + filenames.join(' '));
+    //await exec.exec('npm run lint -- ' + filenames.join(' '));
     const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
     const reportContents = JSON.parse(reportFile);
