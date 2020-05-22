@@ -11,6 +11,7 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const context = github.context;
+    console.log('context', context);
     const { repo: { owner, repo }, issue: { number: issue_number } } = context;
 
     const eventPath = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
@@ -71,30 +72,6 @@ async function runScript() {
             line: options.line,
             path: options.path
         });
-
-        let markDownBody = "📌 **LINE**: " + options.line + "\r\n> ";
-        markDownBody = markDownBody + "❌ **ERROR**: " + options.body + "\r\n\r\n> ";
-
-        octokit.pulls.createComment({
-            owner,
-            repo,
-            pull_number,
-            body: markDownBody,
-            commit_id: options.commit_id,
-            path: options.path
-        });
-        /* octokit.issues.createComment({
-            owner,
-            repo,
-            issue_number,
-            body: markDownBody
-        }); */
-        /* octokit.issues.createComment({
-            owner,
-            repo,
-            issue_number,
-            body: "FILE: " + options.path + " :: LINE: " + options.line + " :: ERROR: " + options.body
-        }); */
     });
 
     for await (let errorFile of errorFiles) {
@@ -104,6 +81,7 @@ async function runScript() {
         const commit_id = url_parts.query.ref;
 
         try {
+            console.log('errorMessages', errorFile.messages[0]);
             await octokit.pulls.createComment({
                 owner,
                 repo,
@@ -119,9 +97,11 @@ async function runScript() {
         }
     }
 
+
     let commentsCountLabel = "**`⚠️ " + commonComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
     const overallCOmmentBody = commonComments.reduce((acc, val) => {
-        acc = acc + "📌 **LINE**: " + val.line + "\r\n> ";
+        const link = `https://github.com/${owner}/${repo}/blob/master/${val.path}#L${val.line}`;
+        acc = acc + "📌 **LINE**: [" + val.line + "](" + link + ")\r\n> ";
         acc = acc + "📕 **FILE**: " + val.path + "\r\n> ";
         acc = acc + "❌ **ERROR**: " + val.body + "\r\n\r\n> ";
         return acc;
@@ -133,7 +113,6 @@ async function runScript() {
         issue_number,
         body: overallCOmmentBody
     });
-
 }
 
 runScript();
