@@ -50,7 +50,7 @@ async function runScript() {
         }
     };
 
-    await exec.exec('npm run lint -- ', [filenames.join(' ')], options);
+    await exec.exec('npm run lint -- ', [filenames.join('" "')], options);
 
     //await exec.exec('npm install -g eslint');
     //await exec.exec('eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '));
