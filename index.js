@@ -1,10 +1,12 @@
 async function runScript() {
-    const core = require('@actions/core');
     const github = require('@actions/github');
+    const core = require('@actions/core');
+    const exec = require('@actions/exec');
+    const path = require('path');
     const url = require('url');
     const fs = require('fs');
 
-    const CLIEngine = require("eslint").CLIEngine;
+    /* const CLIEngine = require("eslint").CLIEngine; */
 
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
@@ -21,14 +23,21 @@ async function runScript() {
     });
     const filenames = changedFiles.map(f => f.filename);
 
-    const cli = new CLIEngine({
+    /* const cli = new CLIEngine({
         envs: ["browser", "mocha"],
         useEslintrc: false,
         rules: {
             semi: 2
         }
     });
-    const { results: reportContents } = cli.executeOnFiles(filenames);
+    const { results: reportContents } = cli.executeOnFiles(filenames); */
+
+
+    await exec.exec('npm install -g eslint');
+    await exec.exec('eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(', '));
+    const reportPath = path.resolve('eslint_report.json');
+    const reportFile = fs.readFileSync(reportPath, 'utf-8')
+    const reportContents = JSON.parse(reportFile);
 
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
 
@@ -105,9 +114,9 @@ async function runScript() {
 
     let commentsCountLabel = "**`⚠️ " + commonComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
     const overallCOmmentBody = commonComments.reduce((acc, val) => {
-        acc = acc + "**LINE**: " + val.line + "\r\n> ";
-        acc = acc + "**FILE**: " + val.path + "\r\n> ";
-        acc = acc + "**ERROR**: " + val.body + "\r\n\r\n> ";
+        acc = acc + "📌 **LINE**: " + val.line + "\r\n> ";
+        acc = acc + "📕 **FILE**: " + val.path + "\r\n> ";
+        acc = acc + "❌ **ERROR**: " + val.body + "\r\n\r\n> ";
         return acc;
     }, commentsCountLabel);
 
