@@ -16,13 +16,19 @@ async function runScript() {
     const eventPath = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
     const pull_number = eventPath.pull_request.number;
 
-    const availableCommentsinPR = await octokit.pulls.listComments({
+    /* const availableCommentsinPR = await octokit.pulls.listComments({
         owner,
         repo,
         pull_number,
     });
-    console.log('availableCommentsinPR', availableCommentsinPR);
+    console.log('availableCommentsinPR', availableCommentsinPR); */
 
+    const availableIssueCommentsinPR = await octokit.issues.listComments({
+        owner,
+        repo,
+        issue_number,
+    });
+    console.log('availableIssueCommentsinPR', availableIssueCommentsinPR);
 
     const { data: changedFiles } = await octokit.pulls.listFiles({
         owner,
