@@ -25,9 +25,9 @@ async function runScript() {
     existingMarkdownComment.includes("**LINE**: ") && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
         let error = { line: "", path: "", message: "" };
         if (comment.includes("**FILE**") && comment.includes("**ERROR**")) {
-            error.line = comment.substring(comment.indexOf("[") + 1, comment.indexOf("]"));
-            error.path = comment.substring(comment.indexOf("**FILE**: ") + 10, comment.indexOf("**ERROR**:") - 5);
-            error.message = comment.substring(comment.indexOf("**ERROR**: ") + 11, comment.lastIndexOf(">") - 3);
+            error.line = comment.substring(comment.indexOf("[") + 1, comment.indexOf("]")).replace(/\s+/g, ' ').trim();
+            error.path = comment.substring(comment.indexOf("**FILE**: ") + 10, comment.indexOf("**ERROR**:") - 5).replace(/\s+/g, ' ').trim();
+            error.message = comment.substring(comment.indexOf("**ERROR**: ") + 11, comment.lastIndexOf(">") - 3).replace(/\s+/g, ' ').trim();
         }
         return error;
     }));
@@ -66,7 +66,6 @@ async function runScript() {
 
     let commonComments = [];
     octokit.hook.error("request", async (error, options) => {
-        console.log("***********octokit.hook.error*********");
         commonComments.push({
             emoji: "❌",
             message: options.body,
@@ -80,7 +79,7 @@ async function runScript() {
         repo,
         pull_number,
     });
-    console.log('listCommentsInPR', listCommentsInPR);
+
     const existingPRcomments = listCommentsInPR.map((comment) => {
         return {
             path: comment.path,
@@ -88,7 +87,7 @@ async function runScript() {
             message: comment.body
         }
     });
-    console.log('existingPRcomments', existingPRcomments);
+
 
 
     for await (let errorFile of errorFiles) {
@@ -99,7 +98,9 @@ async function runScript() {
 
         try {
             for await (let message of errorFile.messages) {
+                console.log('message', message);
                 let alreadExists = existingPRcomments.filter((comment) => comment.line == message.line && comment.message.trim() == message.message.trim());
+                console.log('alreadExists', alreadExists);
                 if (alreadExists.length != 0) {
                     await octokit.pulls.createComment({
                         owner,
@@ -122,7 +123,6 @@ async function runScript() {
     console.log('commonComments', commonComments);
     let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
     existingMarkdownCommentsList.forEach((issue) => {
-        console.log('issue', issue);
         let issueData = issue;
         if (issueData.path) {
             let existingComment = commonComments.filter((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
