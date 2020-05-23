@@ -876,20 +876,20 @@ async function runScript() {
         });
     });
 
-    const listCommentsInPR = await octokit.pulls.listComments({
+    const { data: listCommentsInPR } = await octokit.pulls.listComments({
         owner,
         repo,
         pull_number,
     });
     console.log('listCommentsInPR', listCommentsInPR);
-    const existingPRcomment = listCommentsInPR.data.map((comment) => {
+    const existingPRcomments = listCommentsInPR.map((comment) => {
         return {
             path: comment.path,
             line: comment.original_line,
             message: comment.body
         }
     });
-    console.log('existingPRcomment', existingPRcomment);
+    console.log('existingPRcomments', existingPRcomments);
 
 
     for await (let errorFile of errorFiles) {
@@ -900,6 +900,7 @@ async function runScript() {
 
         try {
             for await (let message of errorFile.messages) {
+                let alreadExists = existingPRcomments
                 await octokit.pulls.createComment({
                     owner,
                     repo,
@@ -921,12 +922,15 @@ async function runScript() {
     let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
     existingMarkdownCommentsList.forEach((issue) => {
         console.log('issue', issue);
-        let existingComment = commonComments.filter((message) => message.line == issue.line && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
-        if (existingComment.length > 0)
-            issue.emoji = "❌";
-        else
-            issue.emoji = "✔️";
-        markdownComments.push(issue);
+        let issueData = issue;
+        if (issueData.path) {
+            let existingComment = commonComments.filter((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
+            if (existingComment.length > 0)
+                issueData.emoji = "❌";
+            else
+                issueData.emoji = "✔️";
+            markdownComments.push(issueData);
+        }
     });
     console.log('markdownComments', markdownComments);
 
