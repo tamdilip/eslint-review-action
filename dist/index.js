@@ -810,9 +810,9 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const { context } = github;
-    console.log('github', github);
+    /* console.log('github', github);
     console.log('context', context);
-    console.log('process.env.GITHUB_EVENT_PATH', process.env.GITHUB_EVENT_PATH);
+    console.log('process.env.GITHUB_EVENT_PATH', process.env.GITHUB_EVENT_PATH); */
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
     const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
@@ -835,7 +835,7 @@ async function runScript() {
         }
         return error;
     }));
-    console.log('existingMarkdownCommentsList', existingMarkdownCommentsList);
+    /* console.log('existingMarkdownCommentsList', existingMarkdownCommentsList); */
 
     const { data: changedFiles } = await octokit.pulls.listFiles({
         owner,
@@ -911,7 +911,7 @@ async function runScript() {
             issue.emoji = "✔️";
         markdownComments.push(issue);
     });
-    console.log('markdownComments', markdownComments);
+    /* console.log('markdownComments', markdownComments); */
 
     let commentsCountLabel = "**`⚠️ " + markdownComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
     const overallCommentBody = markdownComments.reduce((acc, val) => {
@@ -921,7 +921,7 @@ async function runScript() {
         acc = acc + "❌ **ERROR**: " + val.body + "\r\n\r\n> ";
         return acc;
     }, commentsCountLabel);
-    console.log('overallCommentBody', overallCommentBody);
+    /* console.log('overallCommentBody', overallCommentBody); */
 
     if (existingMarkdownCommentsList.length > 0) {
         octokit.issues.updateComment({
