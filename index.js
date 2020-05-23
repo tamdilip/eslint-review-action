@@ -68,6 +68,7 @@ async function runScript() {
     octokit.hook.error("request", async (error, options) => {
         console.log("***********octokit.hook.error*********");
         commonComments.push({
+            emoji: "❌",
             message: options.body,
             line: options.line,
             path: options.path
@@ -100,7 +101,7 @@ async function runScript() {
 
 
     console.log('commonComments', commonComments);
-    let markdownComments = [];
+    let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
     existingMarkdownCommentsList.forEach((issue) => {
         console.log('issue', issue);
         let existingComment = commonComments.filter((message) => message.line.trim() == issue.line.trim() && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
@@ -112,8 +113,8 @@ async function runScript() {
     });
     console.log('markdownComments', markdownComments);
 
-    if (commonComments.length > 0) {
-        let commentsCountLabel = "**`⚠️ " + markdownComments.length > 0 ? markdownComments.length : markdownComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
+    if (markdownComments.length > 0) {
+        let commentsCountLabel = "**`⚠️ " + markdownComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
         const overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
             acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ")\r\n> ";
