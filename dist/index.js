@@ -823,7 +823,7 @@ async function runScript() {
     console.log('issuesListCommentsData', issuesListCommentsData);
 
     let existingMarkdownCommentsList = [];
-    existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
+    eexistingMarkdownComment.includes("**LINE**: ") && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
         let error = { line: "", path: "", message: "" };
         if (comment.includes("**FILE**") && comment.includes("**ERROR**")) {
             error.line = comment.substring(comment.indexOf("[") + 1, comment.indexOf("]"));
@@ -876,6 +876,19 @@ async function runScript() {
         });
     });
 
+    const listCommentsInPR = await octokit.pulls.listComments({
+        owner,
+        repo,
+        pull_number,
+    });
+    console.log('listCommentsInPR', listCommentsInPR);
+    /* const existingPRcomment = listCommentsInPR.data.map((comment) => {
+        return {
+
+        }
+    }); */
+
+
     for await (let errorFile of errorFiles) {
         const path = errorFile.filePath.replace(process.cwd() + '/', '');
         const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == path);
@@ -905,7 +918,7 @@ async function runScript() {
     let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
     existingMarkdownCommentsList.forEach((issue) => {
         console.log('issue', issue);
-        let existingComment = commonComments.filter((message) => message.line.trim() == issue.line.trim() && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
+        let existingComment = commonComments.filter((message) => message.line == issue.line && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
         if (existingComment.length > 0)
             issue.emoji = "❌";
         else
