@@ -902,7 +902,7 @@ async function runScript() {
                 console.log('message', message);
                 let alreadExists = existingPRcomments.filter((comment) => comment.line == message.line && comment.message.trim() == message.message.trim());
                 console.log('alreadExists', alreadExists);
-                if (alreadExists.length != 0) {
+                if (alreadExists.length == 0) {
                     await octokit.pulls.createComment({
                         owner,
                         repo,
