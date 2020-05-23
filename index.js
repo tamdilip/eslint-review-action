@@ -99,16 +99,18 @@ async function runScript() {
 
         try {
             for await (let message of errorFile.messages) {
-                let alreadExists = existingPRcomments
-                await octokit.pulls.createComment({
-                    owner,
-                    repo,
-                    pull_number,
-                    body: message.message,
-                    commit_id,
-                    path,
-                    line: message.line
-                });
+                let alreadExists = existingPRcomments.filter((comment) => comment.line == message.line && comment.message.trim() == message.message.trim());
+                if (alreadExists.length != 0) {
+                    await octokit.pulls.createComment({
+                        owner,
+                        repo,
+                        pull_number,
+                        body: message.message,
+                        commit_id,
+                        path,
+                        line: message.line
+                    });
+                }
             }
         }
         catch (error) {
