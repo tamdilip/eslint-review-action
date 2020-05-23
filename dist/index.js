@@ -810,11 +810,20 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const { context } = github;
+    console.log('github', github);
+    console.log('context', context);
+    console.log('process.env.GITHUB_EVENT_PATH', process.env.GITHUB_EVENT_PATH);
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
     const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
-    let { data: issuesListCommentsData } = await octokit.issues.listComments({ owner, repo, issue_number }), existingMarkdownComment = "";
-    issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment } } = issuesListCommentsData);
+    let { data: issuesListCommentsData } = await octokit.issues.listComments({
+        owner,
+        repo,
+        issue_number
+    }),
+        existingMarkdownComment = "";
+    issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment, id: comment_id } } = issuesListCommentsData);
+    console.log('existingMarkdownComment', existingMarkdownComment);
 
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment && existingMarkdownComment.split("**LINE**: ").map((comment) => {
@@ -826,8 +835,13 @@ async function runScript() {
         }
         return error;
     }));
+    console.log('existingMarkdownCommentsList', existingMarkdownCommentsList);
 
-    const { data: changedFiles } = await octokit.pulls.listFiles({ owner, repo, pull_number });
+    const { data: changedFiles } = await octokit.pulls.listFiles({
+        owner,
+        repo,
+        pull_number
+    });
     const filenames = changedFiles.map(f => f.filename);
 
     const options = {};
@@ -857,7 +871,7 @@ async function runScript() {
     let commonComments = [];
     octokit.hook.error("request", async (error, options) => {
         commonComments.push({
-            body: options.body,
+            message: options.body,
             line: options.line,
             path: options.path
         });
@@ -890,14 +904,14 @@ async function runScript() {
 
     let markdownComments = [];
     existingMarkdownCommentsList.forEach((issue) => {
-        let existingComment = commonComments.filter((err) => err.messages.filter((message) => message.line.trim() == issue.line.trim() && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim()));
+        let existingComment = commonComments.filter((message) => message.line.trim() == issue.line.trim() && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
         if (existingComment.length > 0)
             issue.emoji = "❌";
         else
             issue.emoji = "✔️";
         markdownComments.push(issue);
-
     });
+    console.log('markdownComments', markdownComments);
 
     let commentsCountLabel = "**`⚠️ " + markdownComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
     const overallCommentBody = markdownComments.reduce((acc, val) => {
@@ -907,13 +921,23 @@ async function runScript() {
         acc = acc + "❌ **ERROR**: " + val.body + "\r\n\r\n> ";
         return acc;
     }, commentsCountLabel);
+    console.log('overallCommentBody', overallCommentBody);
 
-    octokit.issues.createComment({
-        owner,
-        repo,
-        issue_number,
-        body: overallCommentBody
-    });
+    if (existingMarkdownCommentsList.length > 0) {
+        octokit.issues.updateComment({
+            owner,
+            repo,
+            comment_id,
+            body: overallCommentBody
+        });
+    } else {
+        octokit.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body: overallCommentBody
+        });
+    }
 }
 
 runScript();
