@@ -823,7 +823,7 @@ async function runScript() {
     console.log('issuesListCommentsData', issuesListCommentsData);
 
     let existingMarkdownCommentsList = [];
-    eexistingMarkdownComment.includes("**LINE**: ") && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
+    existingMarkdownComment.includes("**LINE**: ") && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
         let error = { line: "", path: "", message: "" };
         if (comment.includes("**FILE**") && comment.includes("**ERROR**")) {
             error.line = comment.substring(comment.indexOf("[") + 1, comment.indexOf("]"));
@@ -882,11 +882,14 @@ async function runScript() {
         pull_number,
     });
     console.log('listCommentsInPR', listCommentsInPR);
-    /* const existingPRcomment = listCommentsInPR.data.map((comment) => {
+    const existingPRcomment = listCommentsInPR.data.map((comment) => {
         return {
-
+            path: comment.path,
+            line: comment.original_line,
+            message: comment.body
         }
-    }); */
+    });
+    console.log('existingPRcomment', existingPRcomment);
 
 
     for await (let errorFile of errorFiles) {
