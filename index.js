@@ -6,47 +6,28 @@ async function runScript() {
     const url = require('url');
     const fs = require('fs');
 
-    /* const CLIEngine = require("eslint").CLIEngine; */
-
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
-    const context = github.context;
+    const { context } = github;
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
+    const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
-    const eventPath = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-    const pull_number = eventPath.pull_request.number;
+    let { data: issuesListCommentsData } = await octokit.issues.listComments({ owner, repo, issue_number }), existingMarkdownComment = "";
+    issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment } } = issuesListCommentsData);
 
-    /* const availableCommentsinPR = await octokit.pulls.listComments({
-        owner,
-        repo,
-        pull_number,
-    });
-    console.log('availableCommentsinPR', availableCommentsinPR); */
-
-    const availableIssueCommentsinPR = await octokit.issues.listComments({
-        owner,
-        repo,
-        issue_number,
-    });
-    console.log('availableIssueCommentsinPR', availableIssueCommentsinPR);
-
-    const { data: changedFiles } = await octokit.pulls.listFiles({
-        owner,
-        repo,
-        pull_number
-    });
-    const filenames = changedFiles.map(f => f.filename);
-
-    /* const cli = new CLIEngine({
-        envs: ["browser", "mocha"],
-        useEslintrc: false,
-        rules: {
-            semi: 2
+    let existingMarkdownCommentsList = [];
+    existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment && existingMarkdownComment.split("**LINE**: ").map((comment) => {
+        let error = { line: "", path: "", message: "" };
+        if (comment.includes("**FILE**") && comment.includes("**ERROR**")) {
+            error.line = comment.substring(comment.indexOf("[") + 1, comment.indexOf("]"));
+            error.path = comment.substring(comment.indexOf("**FILE**: ") + 10, comment.indexOf("**ERROR**:") - 5);
+            error.message = comment.substring(comment.indexOf("**ERROR**: ") + 11, comment.lastIndexOf(">") - 3);
         }
-    });
-    const { results: reportContents } = cli.executeOnFiles(filenames); */
+        return error;
+    }));
 
-
+    const { data: changedFiles } = await octokit.pulls.listFiles({ owner, repo, pull_number });
+    const filenames = changedFiles.map(f => f.filename);
 
     const options = {};
     options.listeners = {
@@ -67,18 +48,12 @@ async function runScript() {
         console.log('Lint run error::', error);
     }
 
-
-    //await exec.exec('npm install -g eslint');
-    //await exec.exec('eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '));
-    //await exec.exec('npm run lint -- ' + filenames.join(' '));
     const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
     const reportContents = JSON.parse(reportFile);
-
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
 
     let commonComments = [];
-
     octokit.hook.error("request", async (error, options) => {
         commonComments.push({
             body: options.body,
@@ -112,10 +87,21 @@ async function runScript() {
     }
 
 
-    let commentsCountLabel = "**`⚠️ " + commonComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
-    const overallCOmmentBody = commonComments.reduce((acc, val) => {
+    let markdownComments = [];
+    existingMarkdownCommentsList.forEach((issue) => {
+        let existingComment = commonComments.filter((err) => err.messages.filter((message) => message.line.trim() == issue.line.trim() && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim()));
+        if (existingComment.length > 0)
+            issue.emoji = "❌";
+        else
+            issue.emoji = "✔️";
+        markdownComments.push(issue);
+
+    });
+
+    let commentsCountLabel = "**`⚠️ " + markdownComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
+    const overallCommentBody = markdownComments.reduce((acc, val) => {
         const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
-        acc = acc + "📌 **LINE**: [" + val.line + "](" + link + ")\r\n> ";
+        acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ")\r\n> ";
         acc = acc + "📕 **FILE**: " + val.path + "\r\n> ";
         acc = acc + "❌ **ERROR**: " + val.body + "\r\n\r\n> ";
         return acc;
@@ -125,7 +111,7 @@ async function runScript() {
         owner,
         repo,
         issue_number,
-        body: overallCOmmentBody
+        body: overallCommentBody
     });
 }
 
