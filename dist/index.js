@@ -867,6 +867,7 @@ async function runScript() {
 
     let commonComments = [];
     octokit.hook.error("request", async (error, options) => {
+        console.log('octokit.hook.error');
         commonComments.push({
             emoji: "❌",
             message: options.body,
@@ -901,8 +902,9 @@ async function runScript() {
             for await (let message of errorFile.messages) {
                 console.log('message', message);
                 let alreadExists = existingPRcomments.filter((comment) => comment.line == message.line && comment.message.trim() == message.message.trim());
-                console.log('alreadExists', alreadExists);
+                console.log('alreadExists', alreadExists.length == 0);
                 if (alreadExists.length == 0) {
+                    console.log('octokit.pulls.createComment');
                     await octokit.pulls.createComment({
                         owner,
                         repo,
