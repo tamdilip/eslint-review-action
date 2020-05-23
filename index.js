@@ -132,7 +132,7 @@ async function runScript() {
             const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
             acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ")\r\n> ";
             acc = acc + "📕 **FILE**: " + val.path + "\r\n> ";
-            acc = acc + "❌ **ERROR**: " + val.body + "\r\n\r\n> ";
+            acc = acc + "❌ **ERROR**: " + val.message + "\r\n\r\n> ";
             return acc;
         }, commentsCountLabel);
         console.log('overallCommentBody', overallCommentBody);
