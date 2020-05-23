@@ -112,8 +112,8 @@ async function runScript() {
     });
     console.log('markdownComments', markdownComments);
 
-    if (markdownComments.length > 0) {
-        let commentsCountLabel = "**`⚠️ " + markdownComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
+    if (commonComments.length > 0) {
+        let commentsCountLabel = "**`⚠️ " + markdownComments.length > 0 ? markdownComments.length : markdownComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
         const overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
             acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ")\r\n> ";
@@ -124,6 +124,7 @@ async function runScript() {
         console.log('overallCommentBody', overallCommentBody);
 
         if (existingMarkdownCommentsList.length > 0) {
+            console.log('octokit.issues.updateComment');
             octokit.issues.updateComment({
                 owner,
                 repo,
@@ -131,6 +132,7 @@ async function runScript() {
                 body: overallCommentBody
             });
         } else {
+            console.log('octokit.issues.createComment');
             octokit.issues.createComment({
                 owner,
                 repo,
