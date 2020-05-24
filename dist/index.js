@@ -900,8 +900,9 @@ async function runScript() {
         try {
             for await (let message of errorFile.messages) {
                 let alreadExists = existingPRcomments.filter((comment) => {
-                    console.log('comment.path', comment.path);
-                    console.log('path', path);
+                    console.log(comment.path, path);
+                    console.log(comment.line, message.line);
+                    console.log(comment.message.trim(), message.message.trim());
                     return comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim()
                 });
                 console.log('alreadExists', alreadExists.length == 0);
@@ -940,6 +941,8 @@ async function runScript() {
     });
     markdownComments = existingMarkdownCommentsList.concat(commonComments); */
 
+    let emptyCommentIndex = existingMarkdownCommentsList.findIndex(comment => !comment.path);
+    emptyCommentIndex != -1 && existingMarkdownCommentsList.splice(emptyCommentIndex, 1);
     existingMarkdownCommentsList.forEach((issue) => {
         let issueData = issue;
         if (issueData.path) {
@@ -949,7 +952,6 @@ async function runScript() {
             else
                 issueData.emoji = "✔️";
             existingComment != -1 && commonComments.splice(existingComment, 1);
-            //markdownComments.push(issueData);
         }
     });
     markdownComments = markdownComments.concat(commonComments);
@@ -969,7 +971,8 @@ async function runScript() {
     console.log('markdownComments', markdownComments);
 
     if (markdownComments.length > 0) {
-        let commentsCountLabel = "**`⚠️ " + markdownComments.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
+        const pendingIssues = markdownComments.filter(comment => comment.emoji == "❌");
+        let commentsCountLabel = "**`⚠️ " + pendingIssues.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
         const overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
             acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ")\r\n> ";
