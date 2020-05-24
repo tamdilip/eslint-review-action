@@ -97,15 +97,15 @@ async function runScript() {
 
         try {
             for await (let message of errorFile.messages) {
-                let alreadExists = existingPRcomments.filter((comment) => {
-                    console.log(comment.path, path);
-                    console.log(comment.line, message.line);
-                    console.log(comment.message.trim(), message.message.trim());
-                    console.log(comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim());
+                let alreadExistsPRComment = existingPRcomments.filter((comment) => {
                     return comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim()
                 });
-                console.log('alreadExists', alreadExists.length);
-                if (alreadExists.length == 0) {
+                let alreadExistsIssueComment = existingMarkdownCommentsList.filter((comment) => {
+                    return comment.path == path && comment.message.trim() == message.message.trim()
+                });
+                console.log('alreadExistsPRComment', alreadExistsPRComment.length);
+                console.log('alreadExistsIssueComment', alreadExistsIssueComment.length);
+                if (alreadExistsPRComment.length == 0 && alreadExistsIssueComment.length == 0) {
                     console.log('octokit.pulls.createComment');
                     await octokit.pulls.createComment({
                         owner,
@@ -125,20 +125,8 @@ async function runScript() {
     }
 
     console.log('commonComments', commonComments);
-    //let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
-    let markdownComments = existingMarkdownCommentsList;
-    /* existingMarkdownCommentsList.forEach((issue) => {
-        let issueData = issue;
-        let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
 
-        if (existingComment != -1) {
-            if (issue.emoji != commonComments[existingComment].emoji) {
-                issue.emoji = commonComments[existingComment].emoji == "❌" ? "❌" : issue.emoji;
-            }
-            commonComments.splice(existingComment, 1);
-        }
-    });
-    markdownComments = existingMarkdownCommentsList.concat(commonComments); */
+    let markdownComments = existingMarkdownCommentsList;
 
     let emptyCommentIndex = existingMarkdownCommentsList.findIndex(comment => !comment.path);
     emptyCommentIndex != -1 && existingMarkdownCommentsList.splice(emptyCommentIndex, 1);
@@ -154,19 +142,6 @@ async function runScript() {
         }
     });
     markdownComments = markdownComments.concat(commonComments);
-
-
-    /* existingMarkdownCommentsList.forEach((issue) => {
-        let issueData = issue;
-        if (issueData.path) {
-            let existingComment = commonComments.filter((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
-            if (existingComment.length > 0)
-                issueData.emoji = "❌";
-            else
-                issueData.emoji = "✔️";
-            markdownComments.push(issueData);
-        }
-    }); */
     console.log('markdownComments', markdownComments);
 
     if (markdownComments.length > 0) {
