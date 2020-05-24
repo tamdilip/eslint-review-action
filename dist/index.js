@@ -924,7 +924,7 @@ async function runScript() {
     console.log('commonComments', commonComments);
     let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
 
-    existingMarkdownCommentsList.forEach((issue) => {
+    /* existingMarkdownCommentsList.forEach((issue) => {
         let issueData = issue;
         let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
 
@@ -935,7 +935,23 @@ async function runScript() {
             commonComments.splice(existingComment, 1);
         }
     });
-    markdownComments = existingMarkdownCommentsList.concat(commonComments);
+    markdownComments = existingMarkdownCommentsList.concat(commonComments); */
+
+    existingMarkdownCommentsList.forEach((issue) => {
+        let issueData = issue;
+        if (issueData.path) {
+            let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
+            if (existingComment != -1) {
+                issueData.emoji = "❌";
+                commonComments.splice(existingComment, 1);
+            }
+            else
+                issueData.emoji = "✔️";
+            markdownComments.push(issueData);
+        }
+    });
+    markdownComments = markdownComments.concat(commonComments);
+
 
     /* existingMarkdownCommentsList.forEach((issue) => {
         let issueData = issue;
