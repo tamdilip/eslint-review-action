@@ -899,8 +899,6 @@ async function runScript() {
 
         try {
             for await (let message of errorFile.messages) {
-                console.log('message', message);
-
                 let alreadExists = existingPRcomments.filter((comment) => {
                     console.log('comment.path', comment.path);
                     console.log('path', path);
@@ -927,8 +925,8 @@ async function runScript() {
     }
 
     console.log('commonComments', commonComments);
-    let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
-
+    //let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
+    let markdownComments = existingMarkdownCommentsList;
     /* existingMarkdownCommentsList.forEach((issue) => {
         let issueData = issue;
         let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
@@ -951,7 +949,7 @@ async function runScript() {
             else
                 issueData.emoji = "✔️";
             existingComment != -1 && commonComments.splice(existingComment, 1);
-            markdownComments.push(issueData);
+            //markdownComments.push(issueData);
         }
     });
     markdownComments = markdownComments.concat(commonComments);
