@@ -901,12 +901,8 @@ async function runScript() {
                 let alreadExistsPRComment = existingPRcomments.filter((comment) => {
                     return comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim()
                 });
-                let alreadExistsIssueComment = existingMarkdownCommentsList.filter((comment) => {
-                    return comment.path == path && comment.message.trim() == message.message.trim()
-                });
                 console.log('alreadExistsPRComment', alreadExistsPRComment.length);
-                console.log('alreadExistsIssueComment', alreadExistsIssueComment.length);
-                if (alreadExistsPRComment.length == 0 && alreadExistsIssueComment.length == 0) {
+                if (alreadExistsPRComment.length == 0) {
                     console.log('octokit.pulls.createComment');
                     await octokit.pulls.createComment({
                         owner,
