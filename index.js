@@ -19,13 +19,12 @@ async function runScript() {
     }),
         existingMarkdownComment = "";
     issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment, id: comment_id } } = issuesListCommentsData);
-    console.log('issuesListCommentsData', issuesListCommentsData);
 
     let existingMarkdownCommentsList = [];
     existingMarkdownComment.includes("**LINE**: ") && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
         let error = { line: "", path: "", message: "" };
         if (comment.includes("**FILE**") && comment.includes("**ERROR**")) {
-            error.line = comment.substring(comment.indexOf("[") + 1, comment.indexOf("]")).replace(/\s+/g, ' ').trim();
+            error.line = parseInt(comment.substring(comment.indexOf("[") + 1, comment.indexOf("]")).replace(/\s+/g, ' ').trim());
             error.path = comment.substring(comment.indexOf("**FILE**: ") + 10, comment.indexOf("**ERROR**:") - 5).replace(/\s+/g, ' ').trim();
             error.message = comment.substring(comment.indexOf("**ERROR**: ") + 11, comment.lastIndexOf(">") - 3).replace(/\s+/g, ' ').trim();
         }
@@ -100,7 +99,7 @@ async function runScript() {
         try {
             for await (let message of errorFile.messages) {
                 console.log('message', message);
-                let alreadExists = existingPRcomments.filter((comment) => comment.line == message.line && comment.message.trim() == message.message.trim());
+                let alreadExists = existingPRcomments.filter((comment) => comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim());
                 console.log('alreadExists', alreadExists.length == 0);
                 if (alreadExists.length == 0) {
                     console.log('octokit.pulls.createComment');
@@ -121,10 +120,23 @@ async function runScript() {
         }
     }
 
-
     console.log('commonComments', commonComments);
     let markdownComments = existingMarkdownCommentsList.length > 0 ? [] : commonComments;
+
     existingMarkdownCommentsList.forEach((issue) => {
+        let issueData = issue;
+        let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
+
+        if (existingComment != -1) {
+            if (issue.emoji != commonComments[existingComment].emoji) {
+                issue.emoji = commonComments[existingComment].emoji == "❌" ? "❌" : issue.emoji;
+            }
+            commonComments.splice(existingComment, 1);
+        }
+    });
+    markdownComments = existingMarkdownCommentsList.concat(commonComments);
+
+    /* existingMarkdownCommentsList.forEach((issue) => {
         let issueData = issue;
         if (issueData.path) {
             let existingComment = commonComments.filter((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
@@ -134,7 +146,7 @@ async function runScript() {
                 issueData.emoji = "✔️";
             markdownComments.push(issueData);
         }
-    });
+    }); */
     console.log('markdownComments', markdownComments);
 
     if (markdownComments.length > 0) {
