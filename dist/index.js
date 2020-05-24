@@ -900,7 +900,12 @@ async function runScript() {
         try {
             for await (let message of errorFile.messages) {
                 console.log('message', message);
-                let alreadExists = existingPRcomments.filter((comment) => comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim());
+
+                let alreadExists = existingPRcomments.filter((comment) => {
+                    console.log('comment.path', comment.path);
+                    console.log('path', path);
+                    return comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim()
+                });
                 console.log('alreadExists', alreadExists.length == 0);
                 if (alreadExists.length == 0) {
                     console.log('octokit.pulls.createComment');
@@ -941,12 +946,11 @@ async function runScript() {
         let issueData = issue;
         if (issueData.path) {
             let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
-            if (existingComment != -1) {
+            if (existingComment != -1)
                 issueData.emoji = "❌";
-                commonComments.splice(existingComment, 1);
-            }
             else
                 issueData.emoji = "✔️";
+            existingComment != -1 && commonComments.splice(existingComment, 1);
             markdownComments.push(issueData);
         }
     });
