@@ -38,6 +38,7 @@ async function runScript() {
         repo,
         pull_number
     });
+    console.log('octokit.pulls.listFiles', changedFiles);
     const filenames = changedFiles.map(f => f.filename);
 
     const options = {};
