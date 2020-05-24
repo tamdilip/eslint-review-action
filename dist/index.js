@@ -810,6 +810,7 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const { context } = github;
+    console.log('context', context)
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
     const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
@@ -880,6 +881,7 @@ async function runScript() {
         repo,
         pull_number,
     });
+    console.log('listCommentsInPR', listCommentsInPR);
 
     const existingPRcomments = listCommentsInPR.map((comment) => {
         return {
@@ -888,8 +890,6 @@ async function runScript() {
             message: comment.body
         }
     });
-
-
 
     for await (let errorFile of errorFiles) {
         const path = errorFile.filePath.replace(process.cwd() + '/', '');
@@ -903,9 +903,10 @@ async function runScript() {
                     console.log(comment.path, path);
                     console.log(comment.line, message.line);
                     console.log(comment.message.trim(), message.message.trim());
+                    console.log(comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim());
                     return comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim()
                 });
-                console.log('alreadExists', alreadExists.length == 0);
+                console.log('alreadExists', alreadExists.length);
                 if (alreadExists.length == 0) {
                     console.log('octokit.pulls.createComment');
                     await octokit.pulls.createComment({
