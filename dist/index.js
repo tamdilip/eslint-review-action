@@ -812,6 +812,7 @@ async function runScript() {
     const { context } = github;
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
     const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+    console.log(pull_number);
 
     let { data: issuesListCommentsData } = await octokit.issues.listComments({
         owner,
