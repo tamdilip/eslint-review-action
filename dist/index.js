@@ -933,14 +933,15 @@ async function runScript() {
 
     let markdownComments = existingMarkdownCommentsList;
 
-    existingMarkdownCommentsList.forEach((issue) => {
+    existingMarkdownCommentsList.forEach((issue, index) => {
         let issueData = issue;
         let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
         if (existingComment != -1)
             issueData.emoji = "❌";
         else
             issueData.emoji = "✔️";
-        existingComment != -1 && commonComments.splice(existingComment, 1);
+        //existingComment != -1 && commonComments.splice(existingComment, 1);
+        existingComment != -1 && existingMarkdownCommentsList.splice(index, 1);
     });
     markdownComments = markdownComments.concat(commonComments);
     console.log('markdownComments', markdownComments);
