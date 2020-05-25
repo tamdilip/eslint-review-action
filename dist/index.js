@@ -823,11 +823,11 @@ async function runScript() {
 
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
-        
+
         let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **");
         console.log('subArr', subArr);
         let fixed = subArr[0].includes("✔️"),
-            lineUrl = (fixed && subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim()) || subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
+            lineUrl = fixed ? subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim() : subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
             message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
             path = lineUrl.substring(lineUrl.indexOf("/") + 1, lineUrl.indexOf("#")),
             line = lineUrl.substring(lineUrl.lastIndexOf("#"), lineUrl.length),
