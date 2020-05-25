@@ -823,7 +823,7 @@ async function runScript() {
 
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
-        let subArr = com.split(": **`"),
+        let subArr = comment.split(": **`"),
             fixed = subArr[0].includes("✔️"),
             url = subArr[0].replace("⛔", "").replace("✔️", "").replace(/\s+/g, ' ').trim(),
             message = subArr[1].replace("`**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
