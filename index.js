@@ -9,7 +9,8 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const { context } = github;
-    console.log('context', context);
+    /* console.log('context', context); */
+    console.log('JSON.stringify(context)', JSON.stringify(context));
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
     const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
