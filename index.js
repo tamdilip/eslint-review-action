@@ -35,6 +35,7 @@ async function runScript() {
         return {
             sha,
             lineUrl,
+            repoRemovedPath,
             path,
             line,
             fixed,
