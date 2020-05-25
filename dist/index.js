@@ -908,7 +908,7 @@ async function runScript() {
                 console.log('alreadExistsPRComment', alreadExistsPRComment.length);
                 if (alreadExistsPRComment.length == 0) {
                     console.log('octokit.pulls.createComment');
-                    await octokit.pulls.createComment({
+                    /* await octokit.pulls.createComment({
                         owner,
                         repo,
                         pull_number,
@@ -916,6 +916,13 @@ async function runScript() {
                         commit_id,
                         path,
                         line: message.line
+                    }); */
+
+                    await octokit.repos.createCommitComment({
+                        owner,
+                        repo,
+                        commit_sha: sha,
+                        body: message.message
                     });
                 }
             }
