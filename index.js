@@ -9,8 +9,6 @@ async function runScript() {
     const repoToken = core.getInput('repo-token');
     const octokit = new github.GitHub(repoToken);
     const { context } = github;
-    /* console.log('context', context); */
-    console.log('JSON.stringify(context)', JSON.stringify(context));
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
     const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
@@ -39,7 +37,6 @@ async function runScript() {
         repo,
         pull_number
     });
-    console.log('octokit.pulls.listFiles', changedFiles);
     const filenames = changedFiles.map(f => f.filename);
 
     const options = {};
@@ -73,8 +70,7 @@ async function runScript() {
             emoji: "❌",
             message: options.body,
             line: options.line,
-            path: options.path,
-            original_line: options.original_line,
+            path: options.path
         });
     });
 
@@ -107,7 +103,7 @@ async function runScript() {
                 console.log('alreadExistsPRComment', alreadExistsPRComment.length);
                 if (alreadExistsPRComment.length == 0) {
                     console.log('octokit.pulls.createComment');
-                    /* await octokit.pulls.createComment({
+                    await octokit.pulls.createComment({
                         owner,
                         repo,
                         pull_number,
@@ -115,13 +111,6 @@ async function runScript() {
                         commit_id,
                         path,
                         line: message.line
-                    }); */
-
-                    await octokit.repos.createCommitComment({
-                        owner,
-                        repo,
-                        commit_sha: sha,
-                        body: message.message
                     });
                 }
             }
@@ -156,7 +145,7 @@ async function runScript() {
         let commentsCountLabel = "**`⚠️ " + pendingIssues.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
         const overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
-            acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ") " + val.emoji == "✔️" ? "`outdated`" : "" + "\r\n> ";
+            acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ")\r\n> ";
             acc = acc + "📕 **FILE**: " + val.path + "\r\n> ";
             acc = acc + "❌ **ERROR**: " + val.message + "\r\n\r\n> ";
             return acc;
