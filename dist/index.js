@@ -918,12 +918,23 @@ async function runScript() {
                         line: message.line
                     }); */
 
-                    await octokit.repos.createCommitComment({
+                    /* await octokit.repos.createCommitComment({
                         owner,
                         repo,
                         commit_sha: sha,
                         body: message.message
-                    });
+                    }); */
+
+                    await octokit.pulls.createReview({
+                        owner,
+                        repo,
+                        pull_number,
+                        comments: {
+                            path,
+                            position: 1,
+                            body: message.message,
+                        }
+                    })
                 }
             }
         }
