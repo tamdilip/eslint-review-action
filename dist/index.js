@@ -874,7 +874,8 @@ async function runScript() {
             emoji: "❌",
             message: options.body,
             line: options.line,
-            path: options.path
+            path: options.path,
+            original_line: options.original_line,
         });
     });
 
@@ -949,7 +950,7 @@ async function runScript() {
         let commentsCountLabel = "**`⚠️ " + pendingIssues.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
         const overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
-            acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ")\r\n> ";
+            acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ") " + val.emoji == "✔️" ? "`outdated`" : "" + "\r\n> ";
             acc = acc + "📕 **FILE**: " + val.path + "\r\n> ";
             acc = acc + "❌ **ERROR**: " + val.message + "\r\n\r\n> ";
             return acc;
