@@ -25,11 +25,11 @@ async function runScript() {
         console.log('comment', comment);
         console.log('commentReplace', comment.replace(/\r/g, "").replace(/\n/g, ""));
         
-        let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **`");
+        let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **");
         console.log('subArr', subArr);
         let fixed = subArr[0].includes("✔️"),
             url = (fixed && subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim()) || subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
-            message = subArr[1].replace("`**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
+            message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
             path = url.substring(url.indexOf("/") + 1, url.indexOf("#")),
             line = url.substring(url.lastIndexOf("#"), url.length),
             sha = url.substring(0, url.indexOf("/"));
