@@ -820,9 +820,10 @@ async function runScript() {
     }),
         existingMarkdownComment = "";
     issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment, id: comment_id } } = issuesListCommentsData);
-
+    console.log('existingMarkdownComment', existingMarkdownComment);
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
+        console.log('comment', comment);
         let subArr = comment.split(": **`"),
             fixed = subArr[0].includes("✔️"),
             url = subArr[0].replace("⛔", "").replace("✔️", "").replace(/\s+/g, ' ').trim(),
@@ -874,7 +875,7 @@ async function runScript() {
 
     let commonComments = [];
     octokit.hook.error("request", async (error, options) => {
-        console.log('octokit.hook.error', options);
+        console.log('octokit.hook.error', options.request.validate.line, options.request.validate.start_line);
         commonComments.push({
             fixed: false,
             emoji: "❌",
