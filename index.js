@@ -130,7 +130,7 @@ async function runScript() {
                         pull_number,
                         comments: {
                             path,
-                            position: 1,
+                            position: message.line,
                             body: message.message,
                         }
                     })
