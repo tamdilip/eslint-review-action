@@ -824,7 +824,7 @@ async function runScript() {
     issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment, id: comment_id } } = issuesListCommentsData);
 
     let existingMarkdownCommentsList = [];
-    existingMarkdownComment.includes("**LINE**: ") && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
+    /* existingMarkdownComment.includes("**LINE**: ") && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
         let error = { line: "", path: "", message: "" };
         if (comment.includes("**FILE**") && comment.includes("**ERROR**")) {
             error.line = parseInt(comment.substring(comment.indexOf("[") + 1, comment.indexOf("]")).replace(/\s+/g, ' ').trim());
@@ -832,6 +832,23 @@ async function runScript() {
             error.message = comment.substring(comment.indexOf("**ERROR**: ") + 11, comment.lastIndexOf(">") - 3).replace(/\s+/g, ' ').trim();
         }
         return error;
+    })); */
+    existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
+        let subArr = com.split(": **`"),
+            fixed = subArr[0].includes("✔️"),
+            url = subArr[0].replace("⛔", "").replace("✔️", "").replace(/\s+/g, ' ').trim(),
+            message = subArr[1].replace("`**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
+            path = url.substring(url.indexOf("/") + 1, url.indexOf("#")),
+            line = url.substring(url.lastIndexOf("#"), url.length),
+            sha = url.substring(0, url.indexOf("/"));
+        return {
+            sha,
+            url,
+            path,
+            line,
+            fixed,
+            message
+        }
     }));
     console.log('existingMarkdownCommentsList', existingMarkdownCommentsList);
 
@@ -868,8 +885,9 @@ async function runScript() {
 
     let commonComments = [];
     octokit.hook.error("request", async (error, options) => {
-        console.log('octokit.hook.error');
+        console.log('octokit.hook.error', options);
         commonComments.push({
+            fixed: false,
             emoji: "❌",
             message: options.body,
             line: options.line,
@@ -926,32 +944,29 @@ async function runScript() {
 
     let markdownComments = existingMarkdownCommentsList;
 
-    let emptyCommentIndex = existingMarkdownCommentsList.findIndex(comment => !comment.path);
-    emptyCommentIndex != -1 && existingMarkdownCommentsList.splice(emptyCommentIndex, 1);
     existingMarkdownCommentsList.forEach((issue) => {
         let issueData = issue;
-        if (issueData.path) {
-            let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
-            if (existingComment != -1)
-                issueData.emoji = "❌";
-            else
-                issueData.emoji = "✔️";
-            existingComment != -1 && commonComments.splice(existingComment, 1);
-        }
+        let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
+        if (existingComment != -1)
+            issueData.emoji = "❌";
+        else
+            issueData.emoji = "✔️";
+        existingComment != -1 && commonComments.splice(existingComment, 1);
     });
     markdownComments = markdownComments.concat(commonComments);
     console.log('markdownComments', markdownComments);
 
     if (markdownComments.length > 0) {
-        const pendingIssues = markdownComments.filter(comment => comment.emoji == "❌");
-        let commentsCountLabel = "**`⚠️ " + pendingIssues.length + " :: ISSUES TO BE RESOLVED ⚠️  `**\r\n\r\n> "
+
+        const pendingIssues = markdownComments.filter(comment => !comment.fixed);
+        let commentsCountLabel = `<h2 align=\"center\">⚠️ ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
         const overallCommentBody = markdownComments.reduce((acc, val) => {
-            const link = `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
-            acc = acc + val.emoji + " **LINE**: [" + val.line + "](" + link + ")\r\n> ";
-            acc = acc + "📕 **FILE**: " + val.path + "\r\n> ";
-            acc = acc + "❌ **ERROR**: " + val.message + "\r\n\r\n> ";
+            const link = val.fixed ? val.url : `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
+            acc = acc + `* ${link}\r\n`;
+            acc = acc + `  ${val.emoji} : **${val.message}**\r\n---`;
             return acc;
         }, commentsCountLabel);
+
         console.log('overallCommentBody', overallCommentBody);
 
         if (existingMarkdownCommentsList.length > 0) {
