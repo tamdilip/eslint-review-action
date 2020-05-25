@@ -811,8 +811,6 @@ async function runScript() {
     const octokit = new github.GitHub(repoToken);
     const { context } = github;
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
-    console.log('sha', sha);
-    console.log('context', context);
     const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
     let { data: issuesListCommentsData } = await octokit.issues.listComments({
@@ -824,15 +822,6 @@ async function runScript() {
     issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment, id: comment_id } } = issuesListCommentsData);
 
     let existingMarkdownCommentsList = [];
-    /* existingMarkdownComment.includes("**LINE**: ") && (existingMarkdownCommentsList = existingMarkdownComment.split("**LINE**: ").map((comment) => {
-        let error = { line: "", path: "", message: "" };
-        if (comment.includes("**FILE**") && comment.includes("**ERROR**")) {
-            error.line = parseInt(comment.substring(comment.indexOf("[") + 1, comment.indexOf("]")).replace(/\s+/g, ' ').trim());
-            error.path = comment.substring(comment.indexOf("**FILE**: ") + 10, comment.indexOf("**ERROR**:") - 5).replace(/\s+/g, ' ').trim();
-            error.message = comment.substring(comment.indexOf("**ERROR**: ") + 11, comment.lastIndexOf(">") - 3).replace(/\s+/g, ' ').trim();
-        }
-        return error;
-    })); */
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
         let subArr = com.split(": **`"),
             fixed = subArr[0].includes("✔️"),
@@ -963,7 +952,7 @@ async function runScript() {
         const overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = val.fixed ? val.url : `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
             acc = acc + `* ${link}\r\n`;
-            acc = acc + `  ${val.emoji} : **${val.message}**\r\n---`;
+            acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
             return acc;
         }, commentsCountLabel);
 
