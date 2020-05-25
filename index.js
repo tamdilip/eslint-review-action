@@ -77,7 +77,7 @@ async function runScript() {
     octokit.hook.error("request", async (error, options) => {
         commonComments.push({
             fixed: false,
-            emoji: "❌",
+            emoji: "⛔",
             message: options.body,
             line: options.line,
             path: options.path
@@ -136,7 +136,7 @@ async function runScript() {
         let issueData = issue;
         let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
         if (existingComment != -1)
-            issueData.emoji = "❌";
+            issueData.emoji = "⛔";
         else
             issueData.emoji = "✔️";
         //existingComment != -1 && commonComments.splice(existingComment, 1);
