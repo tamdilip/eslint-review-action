@@ -823,20 +823,18 @@ async function runScript() {
 
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
-        console.log('comment', comment);
-        console.log('commentReplace', comment.replace(/\r/g, "").replace(/\n/g, ""));
         
         let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **");
         console.log('subArr', subArr);
         let fixed = subArr[0].includes("✔️"),
-            url = (fixed && subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim()) || subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
+            lineUrl = (fixed && subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim()) || subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
             message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
-            path = url.substring(url.indexOf("/") + 1, url.indexOf("#")),
-            line = url.substring(url.lastIndexOf("#"), url.length),
-            sha = url.substring(0, url.indexOf("/"));
+            path = lineUrl.substring(lineUrl.indexOf("/") + 1, lineUrl.indexOf("#")),
+            line = lineUrl.substring(lineUrl.lastIndexOf("#"), lineUrl.length),
+            sha = lineUrl.substring(0, lineUrl.indexOf("/"));
         return {
             sha,
-            url,
+            lineUrl,
             path,
             line,
             fixed,
@@ -878,7 +876,6 @@ async function runScript() {
 
     let commonComments = [];
     octokit.hook.error("request", async (error, options) => {
-        console.log('octokit.hook.error', options.request.validate.line, options.request.validate.start_line);
         commonComments.push({
             fixed: false,
             emoji: "❌",
@@ -893,7 +890,6 @@ async function runScript() {
         repo,
         pull_number,
     });
-    console.log('listCommentsInPR', listCommentsInPR);
 
     const existingPRcomments = listCommentsInPR.map((comment) => {
         return {
@@ -955,7 +951,7 @@ async function runScript() {
         const pendingIssues = markdownComments.filter(comment => !comment.fixed);
         let commentsCountLabel = `<h2 align=\"center\">⚠️ ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
         const overallCommentBody = markdownComments.reduce((acc, val) => {
-            const link = val.fixed ? val.url : `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
+            const link = val.fixed ? val.lineUrl : `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
             acc = acc + `* ${link}\r\n`;
             acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
             return acc;
