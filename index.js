@@ -22,8 +22,10 @@ async function runScript() {
 
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
-
-        let subArr = comment.split(": **`");
+        console.log('comment', comment);
+        console.log('commentReplace', comment.replace(/\r/g, "").replace(/\n/g, ""));
+        
+        let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **`");
         console.log('subArr', subArr);
         let fixed = subArr[0].includes("✔️"),
             url = (fixed && subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim()) || subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
