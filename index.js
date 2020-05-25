@@ -10,8 +10,9 @@ async function runScript() {
     const octokit = new github.GitHub(repoToken);
     const { context } = github;
     const { repo: { owner, repo }, issue: { number: issue_number }, sha } = context;
+    console.log('sha', sha);
+    console.log('context', context);
     const { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-    console.log(pull_number);
 
     let { data: issuesListCommentsData } = await octokit.issues.listComments({
         owner,
@@ -101,9 +102,8 @@ async function runScript() {
                 let alreadExistsPRComment = existingPRcomments.filter((comment) => {
                     return comment.path == path && comment.line == message.line && comment.message.trim() == message.message.trim()
                 });
-                console.log('alreadExistsPRComment', alreadExistsPRComment.length);
+
                 if (alreadExistsPRComment.length == 0) {
-                    console.log('octokit.pulls.createComment');
                     await octokit.pulls.createComment({
                         owner,
                         repo,
