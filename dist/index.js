@@ -829,9 +829,10 @@ async function runScript() {
         let fixed = subArr[0].includes("✔️"),
             lineUrl = fixed ? subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim() : subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
             message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
-            path = lineUrl.substring(lineUrl.indexOf("/") + 1, lineUrl.indexOf("#")),
-            line = lineUrl.substring(lineUrl.lastIndexOf("#"), lineUrl.length),
-            sha = lineUrl.substring(0, lineUrl.indexOf("/"));
+            repoRemovedPath = lineUrl.replace("https://github.com/${owner}/${repo}/blob/", ""),
+            path = repoRemovedPath.substring(repoRemovedPath.indexOf("/") + 1, repoRemovedPath.indexOf("#")),
+            line = repoRemovedPath.substring(repoRemovedPath.lastIndexOf("#") + 2, repoRemovedPath.length),
+            sha = repoRemovedPath.substring(0, repoRemovedPath.indexOf("/"));
         return {
             sha,
             lineUrl,
