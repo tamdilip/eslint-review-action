@@ -824,9 +824,10 @@ async function runScript() {
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
 
-        let subArr = comment.split(": **`"),
-            fixed = subArr[0].includes("✔️"),
-            url = (fixed && subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim()) ||subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
+        let subArr = comment.split(": **`");
+        console.log('subArr', subArr);
+        let fixed = subArr[0].includes("✔️"),
+            url = (fixed && subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim()) || subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
             message = subArr[1].replace("`**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
             path = url.substring(url.indexOf("/") + 1, url.indexOf("#")),
             line = url.substring(url.lastIndexOf("#"), url.length),
