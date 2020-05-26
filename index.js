@@ -33,7 +33,7 @@ async function runScript() {
             line = repoRemovedPath.substring(repoRemovedPath.lastIndexOf("#") + 2, repoRemovedPath.length),
             sha = repoRemovedPath.substring(0, repoRemovedPath.indexOf("/"));
         console.log("eeeeescape",`https://github.com/${owner}/${repo}/blob/`);
-Console.log("reeeeeplace", lineUrl.replace(`https://github.com/${owner}/${repo}/blob/`, "");
+console.log("reeeeeplace", lineUrl.replace(`https://github.com/${owner}/${repo}/blob/`, "");
 return {
             sha,
             lineUrl,
