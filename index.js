@@ -60,7 +60,7 @@ async function runScript() {
             //console.log('stdout', data.toString());
             console.log('stdout');
             if (data.toString().includes("# tests")) {
-                console.log(data.toString());
+                console.log("$$$$$$$$$$$", data.toString());
             }
         },
         stderr: (data) => {
