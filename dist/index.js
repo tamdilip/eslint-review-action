@@ -858,18 +858,15 @@ async function runScript() {
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            //console.log('stdout', data.toString());
             console.log('stdout');
             if (data.toString().includes("# tests")) {
                 console.log("$$$$$$$$$$$", data.toString());
             }
         },
         stderr: (data) => {
-            //console.log('stderr', data.toString());
             console.log('stderr');
         },
         errline: (data) => {
-            //console.log('errline', data.toString());
             console.log('errline');
         }
     };
