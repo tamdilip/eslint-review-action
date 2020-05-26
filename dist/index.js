@@ -935,7 +935,6 @@ async function runScript() {
 
     console.log('commonComments', commonComments);
 
-    let markdownComments = existingMarkdownCommentsList;
 
     existingMarkdownCommentsList.forEach((issue, index) => {
         let issueData = issue;
@@ -957,6 +956,8 @@ async function runScript() {
         console.log('index', index);
         existingComment != -1 && existingMarkdownCommentsList.splice(index, 1);
     });
+
+    let markdownComments = existingMarkdownCommentsList;
     markdownComments = markdownComments.concat(commonComments);
     console.log('markdownComments', markdownComments);
 
