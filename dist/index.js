@@ -942,7 +942,7 @@ async function runScript() {
         let existingComment = commonComments.findIndex((message) => {
             console.log('markdownCommentsLoop', message.line, issueData.line, message.path.trim(), issueData.path.trim(), message.message.trim(), issueData.message.trim());
             console.log('markdownCommentsTruth', issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
-            message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim()
+            return message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim()
         });
         if (existingComment != -1) {
             issueData.fixed = false;
