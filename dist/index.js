@@ -857,13 +857,13 @@ async function runScript() {
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            console.log('stdout', data);
+            console.log('stdout', JSON.stringify(data));
         },
         stderr: (data) => {
-            console.log('stderr', data);
+            console.log('stderr', JSON.stringify(data));
         },
         errline: (data) => {
-            console.log('errline', data);
+            console.log('errline', JSON.stringify(data));
         }
     };
 
