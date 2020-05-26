@@ -827,25 +827,24 @@ async function runScript() {
         let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **");
         console.log('subArr', subArr);
         let fixed = subArr[0].includes("✔️"),
+            emoji = fixed ? "✔️" : "⛔",
             lineUrl = fixed ? subArr[0].replace("✔️", "").replace(/\s+/g, ' ').trim() : subArr[0].replace("⛔", "").replace(/\s+/g, ' ').trim(),
             message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
             repoRemovedPath = lineUrl.replace("https://github.com/" + owner + "/" + repo + "/blob/", ""),
             path = repoRemovedPath.substring(repoRemovedPath.indexOf("/") + 1, repoRemovedPath.indexOf("#")),
             line = repoRemovedPath.substring(repoRemovedPath.lastIndexOf("#") + 2, repoRemovedPath.length),
             sha = repoRemovedPath.substring(0, repoRemovedPath.indexOf("/"));
-        console.log("eeeeescape", `https://github.com/${owner}/${repo}/blob/`);
+
         return {
             sha,
+            emoji,
             lineUrl,
-            repoRemovedPath,
             path,
             line,
             fixed,
             message
         }
     }));
-    console.log("usersssss", `https://github.com/${owner}/${repo}/blob/`);
-    console.log("usersssssquote", "https://github.com/" + owner + "/" + repo + "/blob/");
     console.log('existingMarkdownCommentsList', existingMarkdownCommentsList);
 
     const { data: changedFiles } = await octokit.pulls.listFiles({
