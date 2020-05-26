@@ -134,13 +134,11 @@ async function runScript() {
 
     console.log('commonComments', commonComments);
 
-    let markdownComments = existingMarkdownCommentsList;
+
     existingMarkdownCommentsList.forEach((issue, index) => {
         let issueData = issue;
 
         let existingComment = commonComments.findIndex((message) => {
-            console.log('markdownCommentsLoop', message.line, issueData.line, message.path.trim(), issueData.path.trim(), message.message.trim(), issueData.message.trim());
-            console.log('markdownCommentsTruth', issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
             return message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim()
         });
         if (existingComment != -1) {
@@ -151,20 +149,16 @@ async function runScript() {
             issueData.fixed = true;
             issueData.emoji = "✔️";
         }
-        //existingComment != -1 && commonComments.splice(existingComment, 1);
+
         console.log('index', index);
         console.log('existingCommentIndex', existingComment);
-        /* if (existingComment != -1) {
-            console.log('existingMarkdownCommentsList.splice(index, 1)', existingMarkdownCommentsList.splice(index, 1));
-            console.log('existingMarkdownCommentsList', existingMarkdownCommentsList);
-            console.log('markdownComments.splice(index, 1)', markdownComments.splice(index, 1));
-            console.log('markdownComments', markdownComments);
-        } */
 
-        existingComment != -1 && existingMarkdownCommentsList.splice(index, 1);
+        /* existingComment != -1 && markdownComments.splice(index, 1);
         markdownComments = existingMarkdownCommentsList;
-        console.log('SplicedExistingMarkdownCommentsList', markdownComments);
+        console.log('SplicedExistingMarkdownCommentsList', markdownComments); */
     });
+
+    let markdownComments = existingMarkdownCommentsList.filter(comment => comment.fixed);
 
     console.log('AfterSplicedExistingMarkdownCommentsList', markdownComments);
 
