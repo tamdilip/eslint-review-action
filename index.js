@@ -153,7 +153,9 @@ async function runScript() {
         }
         //existingComment != -1 && commonComments.splice(existingComment, 1);
         console.log('index', index);
-        existingComment != -1 && (markdownComments = existingMarkdownCommentsList.splice(index, 1));
+        console.log('existingCommentIndex', existingComment);
+        existingComment != -1 && (existingMarkdownCommentsList = existingMarkdownCommentsList.splice(index, 1));
+        markdownComments = existingMarkdownCommentsList;
         console.log('SplicedExistingMarkdownCommentsList', markdownComments);
     });
 
