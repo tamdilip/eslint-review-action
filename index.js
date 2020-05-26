@@ -53,13 +53,14 @@ async function runScript() {
     });
     const filenames = changedFiles.map(f => f.filename);
 
-    let testData = "";
+    let testResult = "";
     const options = {};
     options.listeners = {
         stdout: (data) => {
             console.log('stdout');
             if (data.toString().includes("# tests")) {
-                console.log("$$$$$$$$$$$", data.toString());
+                testResult = data.toString();
+                console.log("$$$$$$$$$$$", data.toString(), "%%%%%%%%%%%%%%%%");
             }
         },
         stderr: (data) => {
@@ -76,6 +77,8 @@ async function runScript() {
     } catch (error) {
         console.log('Lint run error::', error);
     }
+
+    console.log('testResult', testResult);
 
     /* const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
