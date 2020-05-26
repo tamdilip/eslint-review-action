@@ -53,14 +53,13 @@ async function runScript() {
     });
     const filenames = changedFiles.map(f => f.filename);
 
-    let testResult = "";
+    let emberTestResult = "";
     const options = {};
     options.listeners = {
         stdout: (data) => {
             console.log('stdout');
             if (data.toString().includes("# tests")) {
-                testResult = data.toString();
-                console.log("$$$$$$$$$$$", data.toString(), "%%%%%%%%%%%%%%%%");
+                emberTestResult = data.toString();
             }
         },
         stderr: (data) => {
@@ -72,15 +71,20 @@ async function runScript() {
     };
 
     try {
-        //await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
-        await exec.exec('npm run test', [], options);
+        await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
     } catch (error) {
         console.log('Lint run error::', error);
     }
 
-    console.log('testResult', testResult);
+    try {
+        await exec.exec('npm run test', [], options);
+    } catch (error) {
+        console.log('Ember Test run error::', error);
+    }
 
-    /* const reportPath = path.resolve('eslint_report.json');
+    console.log('emberTestResult', emberTestResult);
+
+    const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
     const reportContents = JSON.parse(reportFile);
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
@@ -170,7 +174,7 @@ async function runScript() {
 
         const pendingIssues = markdownComments.filter(comment => !comment.fixed);
         let commentsCountLabel = `<h2 align=\"center\">⚠️ ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
-        const overallCommentBody = markdownComments.reduce((acc, val) => {
+        let overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = val.fixed ? val.lineUrl : `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
             acc = acc + `* ${link}\r\n`;
             acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
@@ -178,6 +182,13 @@ async function runScript() {
         }, commentsCountLabel);
 
         console.log('overallCommentBody', overallCommentBody);
+
+        let [TEST, PASS, SKIP, FAIL] = emberTestResult.split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
+        let emberTestBody = `<h3>⚠️TEST CASE REPORT⚠️</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+
+        overallCommentBody = overallCommentBody + emberTestBody;
+
+        console.log('overallCommentBodyWithTest', overallCommentBody);
 
         if (existingMarkdownCommentsList.length > 0) {
             console.log('octokit.issues.updateComment');
@@ -196,7 +207,7 @@ async function runScript() {
                 body: overallCommentBody
             });
         }
-    } */
+    }
 }
 
 runScript();
