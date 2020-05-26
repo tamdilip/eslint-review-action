@@ -154,8 +154,10 @@ async function runScript() {
         //existingComment != -1 && commonComments.splice(existingComment, 1);
         console.log('index', index);
         existingComment != -1 && existingMarkdownCommentsList.splice(index, 1);
+        console.log('SplicedExistingMarkdownCommentsList', existingMarkdownCommentsList);
     });
 
+    console.log('AfterSplicedExistingMarkdownCommentsList', existingMarkdownCommentsList);
     let markdownComments = existingMarkdownCommentsList;
     markdownComments = markdownComments.concat(commonComments);
     console.log('markdownComments', markdownComments);
