@@ -935,7 +935,7 @@ async function runScript() {
 
     console.log('commonComments', commonComments);
 
-
+    let markdownComments = existingMarkdownCommentsList;
     existingMarkdownCommentsList.forEach((issue, index) => {
         let issueData = issue;
 
@@ -954,12 +954,12 @@ async function runScript() {
         }
         //existingComment != -1 && commonComments.splice(existingComment, 1);
         console.log('index', index);
-        existingComment != -1 && existingMarkdownCommentsList.splice(index, 1);
-        console.log('SplicedExistingMarkdownCommentsList', existingMarkdownCommentsList);
+        markdownComments = existingComment != -1 && existingMarkdownCommentsList.splice(index, 1);
+        console.log('SplicedExistingMarkdownCommentsList', markdownComments);
     });
 
-    console.log('AfterSplicedExistingMarkdownCommentsList', existingMarkdownCommentsList);
-    let markdownComments = existingMarkdownCommentsList;
+    console.log('AfterSplicedExistingMarkdownCommentsList', markdownComments);
+
     markdownComments = markdownComments.concat(commonComments);
     console.log('markdownComments', markdownComments);
 
