@@ -955,14 +955,14 @@ async function runScript() {
         //existingComment != -1 && commonComments.splice(existingComment, 1);
         console.log('index', index);
         console.log('existingCommentIndex', existingComment);
-        if (existingComment != -1) {
+        /* if (existingComment != -1) {
             console.log('existingMarkdownCommentsList.splice(index, 1)', existingMarkdownCommentsList.splice(index, 1));
             console.log('existingMarkdownCommentsList', existingMarkdownCommentsList);
             console.log('markdownComments.splice(index, 1)', markdownComments.splice(index, 1));
             console.log('markdownComments', markdownComments);
-        }
+        } */
 
-        existingComment != -1 && (existingMarkdownCommentsList = existingMarkdownCommentsList.splice(index, 1));
+        existingComment != -1 && existingMarkdownCommentsList.splice(index, 1);
         markdownComments = existingMarkdownCommentsList;
         console.log('SplicedExistingMarkdownCommentsList', markdownComments);
     });
