@@ -939,12 +939,22 @@ async function runScript() {
 
     existingMarkdownCommentsList.forEach((issue, index) => {
         let issueData = issue;
-        let existingComment = commonComments.findIndex((message) => message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
-        if (existingComment != -1)
+
+        let existingComment = commonComments.findIndex((message) => {
+            console.log('markdownCommentsLoop', message.line, issueData.line, message.path.trim(), issueData.path.trim(), message.message.trim(), issueData.message.trim());
+            console.log('markdownCommentsTruth', issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim());
+            message.line == issueData.line && message.path.trim() == issueData.path.trim() && message.message.trim() == issueData.message.trim()
+        });
+        if (existingComment != -1) {
+            issueData.fixed = false;
             issueData.emoji = "⛔";
-        else
+        }
+        else {
+            issueData.fixed = true;
             issueData.emoji = "✔️";
+        }
         //existingComment != -1 && commonComments.splice(existingComment, 1);
+        console.log('index', index);
         existingComment != -1 && existingMarkdownCommentsList.splice(index, 1);
     });
     markdownComments = markdownComments.concat(commonComments);
