@@ -857,24 +857,24 @@ async function runScript() {
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            console.log('stdout', JSON.stringify(data));
+            console.log('stdout', data.toString());
         },
         stderr: (data) => {
-            console.log('stderr', JSON.stringify(data));
+            console.log('stderr', data.toString());
         },
         errline: (data) => {
-            console.log('errline', JSON.stringify(data));
+            console.log('errline', data.toString());
         }
     };
 
     try {
-        await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
+        //await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
         await exec.exec('npm run test', [], options);
     } catch (error) {
         console.log('Lint run error::', error);
     }
 
-    const reportPath = path.resolve('eslint_report.json');
+    /* const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
     const reportContents = JSON.parse(reportFile);
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
@@ -990,7 +990,7 @@ async function runScript() {
                 body: overallCommentBody
             });
         }
-    }
+    } */
 }
 
 runScript();
