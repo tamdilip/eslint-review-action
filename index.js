@@ -53,16 +53,23 @@ async function runScript() {
     });
     const filenames = changedFiles.map(f => f.filename);
 
+    let testData = "";
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            console.log('stdout', data.toString());
+            //console.log('stdout', data.toString());
+            console.log('stdout');
+            if (data.toString().contains("# tests")) {
+                console.log(data.toString());
+            }
         },
         stderr: (data) => {
-            console.log('stderr', data.toString());
+            //console.log('stderr', data.toString());
+            console.log('stderr');
         },
         errline: (data) => {
-            console.log('errline', data.toString());
+            //console.log('errline', data.toString());
+            console.log('errline');
         }
     };
 
