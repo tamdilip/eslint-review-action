@@ -857,18 +857,19 @@ async function runScript() {
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            console.log('stdout');
+            console.log('stdout', data);
         },
         stderr: (data) => {
-            console.log('stderr');
+            console.log('stderr', data);
         },
         errline: (data) => {
-            console.log('errline');
+            console.log('errline', data);
         }
     };
 
     try {
         await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
+        await exec.exec('npm run test', [], options);
     } catch (error) {
         console.log('Lint run error::', error);
     }
@@ -950,13 +951,6 @@ async function runScript() {
             issueData.fixed = true;
             issueData.emoji = "✔️";
         }
-
-        console.log('index', index);
-        console.log('existingCommentIndex', existingComment);
-
-        /* existingComment != -1 && markdownComments.splice(index, 1);
-        markdownComments = existingMarkdownCommentsList;
-        console.log('SplicedExistingMarkdownCommentsList', markdownComments); */
     });
 
     let markdownComments = existingMarkdownCommentsList.filter(comment => comment.fixed);
