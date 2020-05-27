@@ -56,6 +56,7 @@ async function runScript() {
         pull_number
     });
     const filenames = changedFiles.map(f => f.filename);
+    console.log(filenames);
 
     let emberTestResult = "";
     const options = {};
