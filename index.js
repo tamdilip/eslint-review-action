@@ -19,6 +19,9 @@ async function runScript() {
     }),
         existingMarkdownComment = "";
     issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment, id: comment_id } } = issuesListCommentsData);
+    
+    let testCaseMarkdownIndex = existingMarkdownComment.indexOf("<h3>⚠️TEST CASE REPORT⚠️</h3>");
+    testCaseMarkdownIndex != -1  && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
