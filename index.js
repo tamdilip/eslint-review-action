@@ -92,19 +92,20 @@ async function runScript() {
     console.log('process.env.GITHUB_WORKSPACE', process.env.GITHUB_WORKSPACE);
 
     const eslintrcPath = process.env.GITHUB_WORKSPACE + '/.eslintrc.js'
-
+    let errorFiles = [];
     try {
         if (fs.existsSync(eslintrcPath)) {
             const customEslintConfig = require(eslintrcPath);
             console.log(customEslintConfig);
             customEslintConfig && (cliConfig = customEslintConfig);
         }
+        const cli = new CLIEngine(cliConfig);
+        let { results: reportContents } = cli.executeOnFiles(filenames);
+        console.log('reportContents', reportContents);
+        errorFiles = reportContents.filter(es => es.errorCount > 0);
     } catch (err) {
         console.log('eslintrc error', err)
     }
-
-    const cli = new CLIEngine(cliConfig);
-    const { results: reportContents } = cli.executeOnFiles(filenames);
 
     /* try {
         await exec.exec('npm run test', [], options);
@@ -116,8 +117,8 @@ async function runScript() {
 
     /* const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
-    const reportContents = JSON.parse(reportFile); */
-    const errorFiles = reportContents.filter(es => es.errorCount > 0);
+    const reportContents = JSON.parse(reportFile); 
+    const errorFiles = reportContents.filter(es => es.errorCount > 0); */
 
     let commonComments = [];
     octokit.hook.error("request", async (error, options) => {
@@ -240,7 +241,12 @@ async function runScript() {
 
     }
 
-    pendingIssues.length > 0 && exec.exec('exit 1');
+    //pendingIssues.length > 0 && exec.exec('exit 1');
+    if (pendingIssues.length > 0) {
+        core.setFailed('Error linting files.');
+        process.exit(1);
+    }
+
 }
 
 runScript();
