@@ -19,9 +19,9 @@ async function runScript() {
     }),
         existingMarkdownComment = "";
     issuesListCommentsData.length > 0 && ({ 0: { body: existingMarkdownComment, id: comment_id } } = issuesListCommentsData);
-    
+
     let testCaseMarkdownIndex = existingMarkdownComment.indexOf("<h3>⚠️TEST CASE REPORT⚠️</h3>");
-    testCaseMarkdownIndex != -1  && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
+    testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
     let existingMarkdownCommentsList = [];
     existingMarkdownComment && (existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
@@ -173,10 +173,12 @@ async function runScript() {
     markdownComments = markdownComments.concat(commonComments);
     console.log('markdownComments', markdownComments);
 
+    const pendingIssues = markdownComments.filter(comment => !comment.fixed);
+    const fixedIssues = markdownComments.filter(comment => comment.fixed);
+
     if (markdownComments.length > 0) {
 
-        const pendingIssues = markdownComments.filter(comment => !comment.fixed);
-        let commentsCountLabel = `<h2 align=\"center\">⚠️ ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
+        let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
         let overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = val.fixed ? val.lineUrl : `https://github.com/${owner}/${repo}/blob/${sha}/${val.path}#L${val.line}`;
             acc = acc + `* ${link}\r\n`;
@@ -194,7 +196,6 @@ async function runScript() {
         console.log('overallCommentBodyWithTest', overallCommentBody);
 
         if (existingMarkdownCommentsList.length > 0) {
-            console.log('octokit.issues.updateComment');
             octokit.issues.updateComment({
                 owner,
                 repo,
@@ -202,7 +203,6 @@ async function runScript() {
                 body: overallCommentBody
             });
         } else {
-            console.log('octokit.issues.createComment');
             octokit.issues.createComment({
                 owner,
                 repo,
@@ -210,7 +210,10 @@ async function runScript() {
                 body: overallCommentBody
             });
         }
+
     }
+
+    pendingIssues.length > 0 && exec.exec('exit 1');
 }
 
 runScript();
