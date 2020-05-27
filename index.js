@@ -89,13 +89,16 @@ async function runScript() {
         }
     };
 
-    const eslintrcPath = './.eslintrc.js'
+    console.log('process.env.GITHUB_WORKSPACE', process.env.GITHUB_WORKSPACE);
+
+    const eslintrcPath = process.env.GITHUB_WORKSPACE + '/.eslintrc.js'
 
     try {
         if (fs.existsSync(eslintrcPath)) {
             const customEslintConfig = require(eslintrcPath);
             console.log(customEslintConfig);
             customEslintConfig && (cliConfig = customEslintConfig);
+            console.log('pwd()', pwd());
         }
     } catch (err) {
         console.log('eslintrc error', err)
