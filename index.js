@@ -98,7 +98,6 @@ async function runScript() {
             const customEslintConfig = require(eslintrcPath);
             console.log(customEslintConfig);
             customEslintConfig && (cliConfig = customEslintConfig);
-            console.log('pwd()', pwd());
         }
     } catch (err) {
         console.log('eslintrc error', err)
