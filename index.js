@@ -2,6 +2,7 @@ async function runScript() {
     const github = require('@actions/github');
     const core = require('@actions/core');
     const exec = require('@actions/exec');
+    const glob = require('@actions/glob');
     const path = require('path');
     const url = require('url');
     const fs = require('fs');
@@ -73,11 +74,35 @@ async function runScript() {
         }
     };
 
-    try {
+    /* try {
         await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
     } catch (error) {
         console.log('Lint run error::', error);
+    } */
+
+    const CLIEngine = require("eslint").CLIEngine;
+    let cliConfig = {
+        envs: ["browser", "mocha"],
+        useEslintrc: false,
+        rules: {
+            semi: 2
+        }
+    };
+
+    const eslintrcPath = './.eslintrc.js'
+
+    try {
+        if (fs.existsSync(eslintrcPath)) {
+            const customEslintConfig = require(eslintrcPath);
+            console.log(customEslintConfig);
+            customEslintConfig && (cliConfig = customEslintConfig);
+        }
+    } catch (err) {
+        console.log('eslintrc error', err)
     }
+
+    const cli = new CLIEngine(cliConfig);
+    const { results: reportContents } = cli.executeOnFiles(filenames);
 
     try {
         await exec.exec('npm run test', [], options);
@@ -87,9 +112,9 @@ async function runScript() {
 
     console.log('emberTestResult', emberTestResult);
 
-    const reportPath = path.resolve('eslint_report.json');
+    /* const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
-    const reportContents = JSON.parse(reportFile);
+    const reportContents = JSON.parse(reportFile); */
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
 
     let commonComments = [];
