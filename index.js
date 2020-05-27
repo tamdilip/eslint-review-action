@@ -104,11 +104,11 @@ async function runScript() {
     const cli = new CLIEngine(cliConfig);
     const { results: reportContents } = cli.executeOnFiles(filenames);
 
-    try {
+    /* try {
         await exec.exec('npm run test', [], options);
     } catch (error) {
         console.log('Ember Test run error::', error);
-    }
+    } */
 
     console.log('emberTestResult', emberTestResult);
 
