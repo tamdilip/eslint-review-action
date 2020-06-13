@@ -12,7 +12,7 @@ async function runScript() {
     await CommandExecutor.runEmberTest();
     await EslintReportProcessor.createOrUpdateEslintComment(changedFiles);
 
-    let { body: existingMarkdownComment, id: comment_id } = await GithubApiService.getCommonGroupedComment(),
+    let { existingMarkdownComment, comment_id } = await GithubApiService.getCommonGroupedComment(),
         existingMarkdownCommentsList = await MarkdownProcessor.getExistingCommentsList(existingMarkdownComment),
         { failedComments: newMarkdownCommentsList } = GithubApiService,
         updatedCommonCommentsList = MarkdownProcessor.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),

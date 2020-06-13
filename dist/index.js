@@ -813,7 +813,7 @@ async function runScript() {
     await CommandExecutor.runEmberTest();
     await EslintReportProcessor.createOrUpdateEslintComment(changedFiles);
 
-    let { body: existingMarkdownComment, id: comment_id } = await GithubApiService.getCommonGroupedComment(),
+    let { existingMarkdownComment, comment_id } = await GithubApiService.getCommonGroupedComment(),
         existingMarkdownCommentsList = await MarkdownProcessor.getExistingCommentsList(existingMarkdownComment),
         { failedComments: newMarkdownCommentsList } = GithubApiService,
         updatedCommonCommentsList = MarkdownProcessor.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),
@@ -9902,12 +9902,15 @@ octokit.hook.error('request', async (error, options) => {
 });
 
 let getCommonGroupedComment = async () => {
-    let { data: { 0: commonGroupedComment = '' } = [] } = await octokit.issues.listComments({
+    let { data: issueComments } = await octokit.issues.listComments({
         owner,
         repo,
         issue_number
-    }) || {};
-    return commonGroupedComment;
+    }),
+        existingMarkdownComment = '';
+    issueComments.length > 0 && ({ 0: { body: existingMarkdownComment, id: comment_id } } = issueComments);
+
+    return { existingMarkdownComment, comment_id };
 };
 
 let getFilesChanged = async () => {
