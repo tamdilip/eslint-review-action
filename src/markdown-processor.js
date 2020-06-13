@@ -50,7 +50,7 @@ let getGroupedCommentMarkdown = (markdownComments) => {
         return acc;
     }, commentsCountLabel);
 
-
+    console.log('CommandExecutor.emberTestResult', CommandExecutor.emberTestResult);
     let [TEST, PASS, SKIP, FAIL] = CommandExecutor.emberTestResult.split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
     let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
