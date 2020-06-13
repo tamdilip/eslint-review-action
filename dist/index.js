@@ -803,7 +803,7 @@ const GithubApiService = __webpack_require__(694);
 const MarkdownProcessor = __webpack_require__(909);
 const CommandExecutor = __webpack_require__(681);
 const EslintReportProcessor = __webpack_require__(641);
-const exec = __webpack_require__(986);
+const core = __webpack_require__(470);
 
 async function runScript() {
 
@@ -828,7 +828,7 @@ async function runScript() {
         else
             GithubApiService.createCommonComment(body);
     }
-    markdownComments.filter(comment => !comment.fixed).length > 0 && exec.exec('exit 1');
+    markdownComments.filter(comment => !comment.fixed).length > 0 && core.setFailed('linting failed');
     //markdownComments.find(comment => !comment.fixed) && CommandExecutor.exitProcess();
 }
 
