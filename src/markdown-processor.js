@@ -1,6 +1,6 @@
-import Config from './config';
-import CommandExecutor from './command-executor';
-import GithubApiService from './github-api-service';
+const GithubApiService = require('./github-api-service');
+const CommandExecutor = require('./command-executor');
+const Config = require('./config');
 
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
 

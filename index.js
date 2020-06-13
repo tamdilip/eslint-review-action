@@ -1,7 +1,7 @@
-import GithubApiService from './src/github-api-service';
-import MarkdownProcessor from './src/markdown-processor';
-import CommandExecutor from './src/command-executor';
-import EslintReportProcessor from './src/eslint-report-processor';
+const GithubApiService = require('./src/github-api-service');
+const MarkdownProcessor = require('./src/markdown-processor');
+const CommandExecutor = require('./src/command-executor');
+const EslintReportProcessor = require('./src/eslint-report-processor');
 
 async function runScript() {
 

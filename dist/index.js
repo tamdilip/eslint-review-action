@@ -40,7 +40,7 @@ module.exports =
 /******/ 	// the startup function
 /******/ 	function startup() {
 /******/ 		// Load entry module and return exports
-/******/ 		return __webpack_require__(25);
+/******/ 		return __webpack_require__(104);
 /******/ 	};
 /******/ 	// initialize runtime
 /******/ 	runtime(__webpack_require__);
@@ -693,320 +693,6 @@ module.exports._enoent = enoent;
 
 /***/ }),
 
-/***/ 25:
-/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-
-// CONCATENATED MODULE: ./src/config.js
-const core = __webpack_require__(470);
-
-/* harmony default export */ var config = ({
-    REPO_TOKEN: core.getInput('repo-token'),
-    PASSED_EMOJI: '✔️',
-    FAILED_EMOJI: '⛔',
-    TESTCASE_REPORT_HEADER: '⚠️TEST CASE REPORT⚠️'
-});
-// CONCATENATED MODULE: ./src/github-api-service.js
-const github = __webpack_require__(469);
-const fs = __webpack_require__(747);
-
-
-const { context } = github,
-    octokit = new github.GitHub(config.REPO_TOKEN),
-    { repo: { owner: github_api_service_owner, repo: github_api_service_repo }, issue: { number: issue_number }, sha } = context,
-    { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-
-let failedComments = [];
-octokit.hook.error('request', async (error, options) => {
-    failedComments.push({
-        fixed: false,
-        emoji: config.FAILED_EMOJI,
-        message: options.body,
-        line: options.line,
-        path: options.path
-    });
-});
-
-let getCommonGroupedComment = async () => {
-    let { data: { 0: commonGroupedComment = '' } = [] } = await octokit.issues.listComments({
-        owner: github_api_service_owner,
-        repo: github_api_service_repo,
-        issue_number
-    }) || {};
-    return commonGroupedComment;
-};
-
-let getFilesChanged = async () => {
-    let { data: changedFiles } = await octokit.pulls.listFiles({
-        owner: github_api_service_owner,
-        repo: github_api_service_repo,
-        pull_number
-    }) || {};
-    return changedFiles;
-};
-
-let getCommentsInPR = async () => {
-    let { data: commentsInPR } = await octokit.pulls.listComments({
-        owner: github_api_service_owner,
-        repo: github_api_service_repo,
-        pull_number,
-    }) || {};
-    return commentsInPR;
-};
-
-let commentEslistError = async ({ message, commit_id, path }) => {
-    return await octokit.pulls.createComment({
-        owner: github_api_service_owner,
-        repo: github_api_service_repo,
-        pull_number,
-        body: message.message,
-        commit_id,
-        path,
-        line: message.line
-    });
-};
-
-let getCommentLineURL = (value) => {
-    return `https://github.com/${github_api_service_owner}/${github_api_service_repo}/blob/${sha}/${value.path}#L${value.line}`;
-};
-
-let updateCommonComment = ({ comment_id, body }) => {
-    octokit.issues.updateComment({
-        owner: github_api_service_owner,
-        repo: github_api_service_repo,
-        comment_id,
-        body
-    });
-};
-
-let createCommonComment = (body) => {
-    octokit.issues.createComment({
-        owner: github_api_service_owner,
-        repo: github_api_service_repo,
-        issue_number,
-        body
-    });
-};
-
-
-
-// CONCATENATED MODULE: ./src/command-executor.js
-const exec = __webpack_require__(986);
-
-let emberTestResult = '';
-
-const command_executor_options = {};
-command_executor_options.listeners = {
-    stdout: (data) => {
-        console.log('stdout');
-        if (data.toString().includes('# tests')) {
-            emberTestResult = data.toString();
-        }
-    },
-    stderr: (data) => {
-        console.log('stderr');
-    },
-    errline: (data) => {
-        console.log('errline');
-    }
-};
-
-let runESlint = async (filenames) => {
-    try {
-        await exec.exec('npm run lint -- ' + filenames.join(' '), [], command_executor_options);
-    } catch (error) {
-        console.log('Lint run error::', error);
-    }
-};
-
-let runEmberTest = async () => {
-    try {
-        await exec.exec('npm run test', [], command_executor_options);
-    } catch (error) {
-        console.log('Ember Test run error::', error);
-    }
-};
-
-let exitProcess = () => {
-    exec.exec('exit 1');
-};
-
-
-
-// CONCATENATED MODULE: ./src/markdown-processor.js
-
-
-
-
-const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = config;
-
-let getExistingCommentsList = (existingMarkdownComment) => {
-
-    let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TESTCASE_REPORT_HEADER}</h3>`);
-    testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
-
-    let existingMarkdownCommentsList = [];
-    if (existingMarkdownComment) {
-        existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
-
-            let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **");
-
-            let fixed = subArr[0].includes(PASSED_EMOJI),
-                emoji = fixed ? PASSED_EMOJI : FAILED_EMOJI,
-                lineUrl = fixed ? subArr[0].replace(PASSED_EMOJI, "").replace(/\s+/g, ' ').trim() : subArr[0].replace(FAILED_EMOJI, "").replace(/\s+/g, ' ').trim(),
-                message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
-                repoRemovedPath = lineUrl.replace("https://github.com/" + owner + "/" + repo + "/blob/", ""),
-                path = repoRemovedPath.substring(repoRemovedPath.indexOf("/") + 1, repoRemovedPath.indexOf("#")),
-                line = repoRemovedPath.substring(repoRemovedPath.lastIndexOf("#") + 2, repoRemovedPath.length),
-                sha = repoRemovedPath.substring(0, repoRemovedPath.indexOf("/"));
-
-            return {
-                sha,
-                emoji,
-                lineUrl,
-                path,
-                line,
-                fixed,
-                message
-            }
-        });
-        return existingMarkdownCommentsList;
-    };
-};
-
-let getGroupedCommentMarkdown = (markdownComments) => {
-    const pendingIssues = markdownComments.filter(comment => !comment.fixed);
-    const fixedIssues = markdownComments.filter(comment => comment.fixed);
-
-    let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
-    let overallCommentBody = markdownComments.reduce((acc, val) => {
-        const link = val.fixed ? val.lineUrl : /* Cannot get final name for export "default,getCommentLineURL" in "./src/github-api-service.js" (known exports: failedComments getCommonGroupedComment getFilesChanged getCommentsInPR commentEslistError getCommentLineURL updateCommonComment createCommonComment, known reexports: ) */ undefined.getCommentLineURL(val);
-        acc = acc + `* ${link}\r\n`;
-        acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
-        return acc;
-    }, commentsCountLabel);
-
-
-    let [TEST, PASS, SKIP, FAIL] = /* Cannot get final name for export "default,emberTestResult,split" in "./src/command-executor.js" (known exports: emberTestResult runESlint runEmberTest exitProcess, known reexports: ) */ undefined.emberTestResult.split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
-    let emberTestBody = `<h3>${config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
-
-    overallCommentBody = overallCommentBody + emberTestBody;
-
-    return overallCommentBody;
-};
-
-let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCommentsList) => {
-    return existingMarkdownCommentsList.map((issue) => {
-        const existingComment = newMarkdownCommentsList.find((message) => message.line == issue.line && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
-
-        if (existingComment) {
-            issue.fixed = false;
-            issue.emoji = FAILED_EMOJI;
-        }
-        else {
-            issue.fixed = true;
-            issue.emoji = PASSED_EMOJI;
-        }
-
-        return issue;
-    });
-};
-
-
-// CONCATENATED MODULE: ./src/eslint-report-processor.js
-
-const path = __webpack_require__(622);
-const url = __webpack_require__(835);
-const eslint_report_processor_fs = __webpack_require__(747);
-
-
-let getErrorFiles = () => {
-    const reportPath = path.resolve('eslint_report.json');
-    const reportFile = eslint_report_processor_fs.readFileSync(reportPath, 'utf-8')
-    const reportContents = JSON.parse(reportFile);
-    const errorFiles = reportContents.filter(es => es.errorCount > 0);
-    return errorFiles;
-};
-
-let getExistingPrComments = async () => {
-    const commentsInPR = await /* Cannot get final name for export "default,getCommentsInPR" in "./src/github-api-service.js" (known exports: failedComments getCommonGroupedComment getFilesChanged getCommentsInPR commentEslistError getCommentLineURL updateCommonComment createCommonComment, known reexports: ) */ undefined.getCommentsInPR();
-    const existingPRcomments = commentsInPR.map((comment) => {
-        return {
-            path: comment.path,
-            line: comment.line,
-            message: comment.body
-        }
-    });
-    return existingPRcomments;
-};
-
-let createOrUpdateEslintComment = async (changedFiles) => {
-    const existingPRcomments = getExistingPrComments();
-    const errorFiles = getErrorFiles();
-
-    for await (let errorFile of errorFiles) {
-        const filePath = errorFile.filePath.replace(process.cwd() + '/', '');
-        const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == filePath);
-        const url_parts = url.parse(prFilesWithError.contents_url, true);
-        const commit_id = url_parts.query.ref;
-
-        try {
-            for await (let message of errorFile.messages) {
-                let alreadExistsPRComment = existingPRcomments.filter((comment) => comment.path == filePath && comment.line == message.line && comment.message.trim() == message.message.trim());
-
-                if (alreadExistsPRComment.length == 0)
-                    await /* Cannot get final name for export "default,commentEslistError" in "./src/github-api-service.js" (known exports: failedComments getCommonGroupedComment getFilesChanged getCommentsInPR commentEslistError getCommentLineURL updateCommonComment createCommonComment, known reexports: ) */ undefined.commentEslistError({ message, commit_id, path: filePath });
-
-            }
-        }
-        catch (error) {
-            console.log('createComment error::', error);
-        }
-    }
-
-};
-
-
-// CONCATENATED MODULE: ./index.js
-
-
-
-
-
-async function runScript() {
-
-    const changedFiles = await /* Cannot get final name for export "default,getFilesChanged" in "./src/github-api-service.js" (known exports: failedComments getCommonGroupedComment getFilesChanged getCommentsInPR commentEslistError getCommentLineURL updateCommonComment createCommonComment, known reexports: ) */ undefined.getFilesChanged();
-    const filenames = changedFiles.map(f => f.filename);
-
-    await /* Cannot get final name for export "default,runESlint" in "./src/command-executor.js" (known exports: emberTestResult runESlint runEmberTest exitProcess, known reexports: ) */ undefined.runESlint(filenames);
-    await /* Cannot get final name for export "default,runEmberTest" in "./src/command-executor.js" (known exports: emberTestResult runESlint runEmberTest exitProcess, known reexports: ) */ undefined.runEmberTest();
-    await /* Cannot get final name for export "default,createOrUpdateEslintComment" in "./src/eslint-report-processor.js" (known exports: createOrUpdateEslintComment, known reexports: ) */ undefined.createOrUpdateEslintComment(changedFiles);
-
-    let { body: existingMarkdownComment, id: comment_id } = await /* Cannot get final name for export "default,getCommonGroupedComment" in "./src/github-api-service.js" (known exports: failedComments getCommonGroupedComment getFilesChanged getCommentsInPR commentEslistError getCommentLineURL updateCommonComment createCommonComment, known reexports: ) */ undefined.getCommonGroupedComment(),
-        existingMarkdownCommentsList = await /* Cannot get final name for export "default,getExistingCommentsList" in "./src/markdown-processor.js" (known exports: getExistingCommentsList getGroupedCommentMarkdown getUpdatedCommonCommentsList, known reexports: ) */ undefined.getExistingCommentsList(existingMarkdownComment),
-        { failedComments: newMarkdownCommentsList } = /* Cannot get final name for export "default" in "./src/github-api-service.js" (known exports: failedComments getCommonGroupedComment getFilesChanged getCommentsInPR commentEslistError getCommentLineURL updateCommonComment createCommonComment, known reexports: ) */ undefined,
-        updatedCommonCommentsList = /* Cannot get final name for export "default,getUpdatedCommonCommentsList" in "./src/markdown-processor.js" (known exports: getExistingCommentsList getGroupedCommentMarkdown getUpdatedCommonCommentsList, known reexports: ) */ undefined.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),
-        markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
-
-    if (markdownComments.length > 0) {
-        const body = /* Cannot get final name for export "default,getGroupedCommentMarkdown" in "./src/markdown-processor.js" (known exports: getExistingCommentsList getGroupedCommentMarkdown getUpdatedCommonCommentsList, known reexports: ) */ undefined.getGroupedCommentMarkdown(markdownComments);
-
-        if (updatedCommonCommentsList.length > 0)
-            /* Cannot get final name for export "default,updateCommonComment" in "./src/github-api-service.js" (known exports: failedComments getCommonGroupedComment getFilesChanged getCommentsInPR commentEslistError getCommentLineURL updateCommonComment createCommonComment, known reexports: ) */ undefined.updateCommonComment({ comment_id, body });
-        else
-            /* Cannot get final name for export "default,createCommonComment" in "./src/github-api-service.js" (known exports: failedComments getCommonGroupedComment getFilesChanged getCommentsInPR commentEslistError getCommentLineURL updateCommonComment createCommonComment, known reexports: ) */ undefined.createCommonComment(body);
-    }
-
-    markdownComments.find(comment => !comment.fixed) && /* Cannot get final name for export "default,exitProcess" in "./src/command-executor.js" (known exports: emberTestResult runESlint runEmberTest exitProcess, known reexports: ) */ undefined.exitProcess();
-}
-
-runScript();
-
-
-/***/ }),
-
 /***/ 39:
 /***/ (function(module) {
 
@@ -1109,6 +795,46 @@ module.exports = windowsRelease;
 /***/ (function(module) {
 
 module.exports = require("os");
+
+/***/ }),
+
+/***/ 104:
+/***/ (function(__unusedmodule, __unusedexports, __webpack_require__) {
+
+const GithubApiService = __webpack_require__(694);
+const MarkdownProcessor = __webpack_require__(909);
+const CommandExecutor = __webpack_require__(681);
+const EslintReportProcessor = __webpack_require__(641);
+
+async function runScript() {
+
+    const changedFiles = await GithubApiService.getFilesChanged();
+    const filenames = changedFiles.map(f => f.filename);
+
+    await CommandExecutor.runESlint(filenames);
+    await CommandExecutor.runEmberTest();
+    await EslintReportProcessor.createOrUpdateEslintComment(changedFiles);
+
+    let { body: existingMarkdownComment, id: comment_id } = await GithubApiService.getCommonGroupedComment(),
+        existingMarkdownCommentsList = await MarkdownProcessor.getExistingCommentsList(existingMarkdownComment),
+        { failedComments: newMarkdownCommentsList } = GithubApiService,
+        updatedCommonCommentsList = MarkdownProcessor.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),
+        markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
+
+    if (markdownComments.length > 0) {
+        const body = MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
+
+        if (updatedCommonCommentsList.length > 0)
+            GithubApiService.updateCommonComment({ comment_id, body });
+        else
+            GithubApiService.createCommonComment(body);
+    }
+
+    markdownComments.find(comment => !comment.fixed) && CommandExecutor.exitProcess();
+}
+
+runScript();
+
 
 /***/ }),
 
@@ -9044,6 +8770,68 @@ module.exports = require("net");
 
 /***/ }),
 
+/***/ 641:
+/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createOrUpdateEslintComment", function() { return createOrUpdateEslintComment; });
+const GithubApiService = __webpack_require__(694);
+const path = __webpack_require__(622);
+const url = __webpack_require__(835);
+const fs = __webpack_require__(747);
+
+
+let getErrorFiles = () => {
+    const reportPath = path.resolve('eslint_report.json');
+    const reportFile = fs.readFileSync(reportPath, 'utf-8')
+    const reportContents = JSON.parse(reportFile);
+    const errorFiles = reportContents.filter(es => es.errorCount > 0);
+    return errorFiles;
+};
+
+let getExistingPrComments = async () => {
+    const commentsInPR = await GithubApiService.getCommentsInPR();
+    const existingPRcomments = commentsInPR.map((comment) => {
+        return {
+            path: comment.path,
+            line: comment.line,
+            message: comment.body
+        }
+    });
+    return existingPRcomments;
+};
+
+let createOrUpdateEslintComment = async (changedFiles) => {
+    const existingPRcomments = getExistingPrComments();
+    const errorFiles = getErrorFiles();
+
+    for await (let errorFile of errorFiles) {
+        const filePath = errorFile.filePath.replace(process.cwd() + '/', '');
+        const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == filePath);
+        const url_parts = url.parse(prFilesWithError.contents_url, true);
+        const commit_id = url_parts.query.ref;
+
+        try {
+            for await (let message of errorFile.messages) {
+                let alreadExistsPRComment = existingPRcomments.filter((comment) => comment.path == filePath && comment.line == message.line && comment.message.trim() == message.message.trim());
+
+                if (alreadExistsPRComment.length == 0)
+                    await GithubApiService.commentEslistError({ message, commit_id, path: filePath });
+
+            }
+        }
+        catch (error) {
+            console.log('createComment error::', error);
+        }
+    }
+
+};
+
+
+
+/***/ }),
+
 /***/ 649:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -9115,6 +8903,22 @@ if (process.platform === 'linux') {
   )
 }
 
+
+/***/ }),
+
+/***/ 659:
+/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const core = __webpack_require__(470);
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    REPO_TOKEN: core.getInput('repo-token'),
+    PASSED_EMOJI: '✔️',
+    FAILED_EMOJI: '⛔',
+    TESTCASE_REPORT_HEADER: '⚠️TEST CASE REPORT⚠️'
+});
 
 /***/ }),
 
@@ -9392,6 +9196,60 @@ function authenticate(state, options) {
 module.exports = function btoa(str) {
   return new Buffer(str).toString('base64')
 }
+
+
+/***/ }),
+
+/***/ 681:
+/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "emberTestResult", function() { return emberTestResult; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "runESlint", function() { return runESlint; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "runEmberTest", function() { return runEmberTest; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "exitProcess", function() { return exitProcess; });
+const exec = __webpack_require__(986);
+
+let emberTestResult = '';
+
+const options = {};
+options.listeners = {
+    stdout: (data) => {
+        console.log('stdout');
+        if (data.toString().includes('# tests')) {
+            emberTestResult = data.toString();
+        }
+    },
+    stderr: (data) => {
+        console.log('stderr');
+    },
+    errline: (data) => {
+        console.log('errline');
+    }
+};
+
+let runESlint = async (filenames) => {
+    try {
+        await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
+    } catch (error) {
+        console.log('Lint run error::', error);
+    }
+};
+
+let runEmberTest = async () => {
+    try {
+        await exec.exec('npm run test', [], options);
+    } catch (error) {
+        console.log('Ember Test run error::', error);
+    }
+};
+
+let exitProcess = () => {
+    exec.exec('exit 1');
+};
+
+
 
 
 /***/ }),
@@ -10027,6 +9885,105 @@ class Deprecation extends Error {
 }
 
 exports.Deprecation = Deprecation;
+
+
+/***/ }),
+
+/***/ 694:
+/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "failedComments", function() { return failedComments; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCommonGroupedComment", function() { return getCommonGroupedComment; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFilesChanged", function() { return getFilesChanged; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCommentsInPR", function() { return getCommentsInPR; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "commentEslistError", function() { return commentEslistError; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCommentLineURL", function() { return getCommentLineURL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateCommonComment", function() { return updateCommonComment; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCommonComment", function() { return createCommonComment; });
+const github = __webpack_require__(469);
+const Config = __webpack_require__(659);
+const fs = __webpack_require__(747);
+
+const { context } = github,
+    octokit = new github.GitHub(Config.REPO_TOKEN),
+    { repo: { owner, repo }, issue: { number: issue_number }, sha } = context,
+    { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+
+let failedComments = [];
+octokit.hook.error('request', async (error, options) => {
+    failedComments.push({
+        fixed: false,
+        emoji: Config.FAILED_EMOJI,
+        message: options.body,
+        line: options.line,
+        path: options.path
+    });
+});
+
+let getCommonGroupedComment = async () => {
+    let { data: { 0: commonGroupedComment = '' } = [] } = await octokit.issues.listComments({
+        owner,
+        repo,
+        issue_number
+    }) || {};
+    return commonGroupedComment;
+};
+
+let getFilesChanged = async () => {
+    let { data: changedFiles } = await octokit.pulls.listFiles({
+        owner,
+        repo,
+        pull_number
+    }) || {};
+    return changedFiles;
+};
+
+let getCommentsInPR = async () => {
+    let { data: commentsInPR } = await octokit.pulls.listComments({
+        owner,
+        repo,
+        pull_number,
+    }) || {};
+    return commentsInPR;
+};
+
+let commentEslistError = async ({ message, commit_id, path }) => {
+    return await octokit.pulls.createComment({
+        owner,
+        repo,
+        pull_number,
+        body: message.message,
+        commit_id,
+        path,
+        line: message.line
+    });
+};
+
+let getCommentLineURL = (value) => {
+    return `https://github.com/${owner}/${repo}/blob/${sha}/${value.path}#L${value.line}`;
+};
+
+let updateCommonComment = ({ comment_id, body }) => {
+    octokit.issues.updateComment({
+        owner,
+        repo,
+        comment_id,
+        body
+    });
+};
+
+let createCommonComment = (body) => {
+    octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number,
+        body
+    });
+};
+
+
 
 
 /***/ }),
@@ -26125,6 +26082,96 @@ function withCustomRequest(customRequest) {
 exports.graphql = graphql$1;
 exports.withCustomRequest = withCustomRequest;
 //# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
+/***/ 909:
+/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getExistingCommentsList", function() { return getExistingCommentsList; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getGroupedCommentMarkdown", function() { return getGroupedCommentMarkdown; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getUpdatedCommonCommentsList", function() { return getUpdatedCommonCommentsList; });
+const GithubApiService = __webpack_require__(694);
+const CommandExecutor = __webpack_require__(681);
+const Config = __webpack_require__(659);
+
+const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
+
+let getExistingCommentsList = (existingMarkdownComment) => {
+
+    let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TESTCASE_REPORT_HEADER}</h3>`);
+    testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
+
+    let existingMarkdownCommentsList = [];
+    if (existingMarkdownComment) {
+        existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
+
+            let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **");
+
+            let fixed = subArr[0].includes(PASSED_EMOJI),
+                emoji = fixed ? PASSED_EMOJI : FAILED_EMOJI,
+                lineUrl = fixed ? subArr[0].replace(PASSED_EMOJI, "").replace(/\s+/g, ' ').trim() : subArr[0].replace(FAILED_EMOJI, "").replace(/\s+/g, ' ').trim(),
+                message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
+                repoRemovedPath = lineUrl.replace("https://github.com/" + owner + "/" + repo + "/blob/", ""),
+                path = repoRemovedPath.substring(repoRemovedPath.indexOf("/") + 1, repoRemovedPath.indexOf("#")),
+                line = repoRemovedPath.substring(repoRemovedPath.lastIndexOf("#") + 2, repoRemovedPath.length),
+                sha = repoRemovedPath.substring(0, repoRemovedPath.indexOf("/"));
+
+            return {
+                sha,
+                emoji,
+                lineUrl,
+                path,
+                line,
+                fixed,
+                message
+            }
+        });
+        return existingMarkdownCommentsList;
+    };
+};
+
+let getGroupedCommentMarkdown = (markdownComments) => {
+    const pendingIssues = markdownComments.filter(comment => !comment.fixed);
+    const fixedIssues = markdownComments.filter(comment => comment.fixed);
+
+    let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
+    let overallCommentBody = markdownComments.reduce((acc, val) => {
+        const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
+        acc = acc + `* ${link}\r\n`;
+        acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
+        return acc;
+    }, commentsCountLabel);
+
+
+    let [TEST, PASS, SKIP, FAIL] = CommandExecutor.emberTestResult.split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
+    let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+
+    overallCommentBody = overallCommentBody + emberTestBody;
+
+    return overallCommentBody;
+};
+
+let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCommentsList) => {
+    return existingMarkdownCommentsList.map((issue) => {
+        const existingComment = newMarkdownCommentsList.find((message) => message.line == issue.line && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
+
+        if (existingComment) {
+            issue.fixed = false;
+            issue.emoji = FAILED_EMOJI;
+        }
+        else {
+            issue.fixed = true;
+            issue.emoji = PASSED_EMOJI;
+        }
+
+        return issue;
+    });
+};
+
 
 
 /***/ }),

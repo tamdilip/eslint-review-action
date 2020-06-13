@@ -1,6 +1,6 @@
 const github = require('@actions/github');
+const Config = require('./config');
 const fs = require('fs');
-import Config from './config';
 
 const { context } = github,
     octokit = new github.GitHub(Config.REPO_TOKEN),

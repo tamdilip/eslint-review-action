@@ -1,4 +1,4 @@
-import GithubApiService from './github-api-service';
+const GithubApiService = require('./github-api-service');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
