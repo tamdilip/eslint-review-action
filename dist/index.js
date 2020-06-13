@@ -803,6 +803,7 @@ const GithubApiService = __webpack_require__(694);
 const MarkdownProcessor = __webpack_require__(909);
 const CommandExecutor = __webpack_require__(681);
 const EslintReportProcessor = __webpack_require__(641);
+const exec = __webpack_require__(986);
 
 async function runScript() {
 
@@ -827,8 +828,8 @@ async function runScript() {
         else
             GithubApiService.createCommonComment(body);
     }
-
-    markdownComments.find(comment => !comment.fixed) && CommandExecutor.exitProcess();
+    markdownComments.filter(comment => !comment.fixed).length > 0 && exec.exec('exit 1');
+    //markdownComments.find(comment => !comment.fixed) && CommandExecutor.exitProcess();
 }
 
 runScript();
@@ -9207,6 +9208,7 @@ options.listeners = {
     stdout: (data) => {
         console.log('stdout');
         if (data.toString().includes('# tests')) {
+            console.log('# tests@@@@@@@@@@%%%%%%%%%%%%%%%%%%%');
             emberTestResult = data.toString();
         }
     },
@@ -9238,8 +9240,12 @@ let exitProcess = () => {
     exec.exec('exit 1');
 };
 
+let getEmberTestResult = () => {
+    return emberTestResult;
+};
 
-module.exports = { emberTestResult, runESlint, runEmberTest, exitProcess };
+
+module.exports = { emberTestResult, runESlint, runEmberTest, exitProcess, getEmberTestResult };
 
 /***/ }),
 
@@ -26121,8 +26127,8 @@ let getGroupedCommentMarkdown = (markdownComments) => {
         return acc;
     }, commentsCountLabel);
 
-    console.log('CommandExecutor.emberTestResult', CommandExecutor.emberTestResult);
-    let [TEST, PASS, SKIP, FAIL] = CommandExecutor.emberTestResult.split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
+    console.log('CommandExecutor.emberTestResult', CommandExecutor.getEmberTestResult());
+    let [TEST, PASS, SKIP, FAIL] = CommandExecutor.getEmberTestResult().split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
     let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
     overallCommentBody = overallCommentBody + emberTestBody;

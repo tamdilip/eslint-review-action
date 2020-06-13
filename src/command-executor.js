@@ -7,6 +7,7 @@ options.listeners = {
     stdout: (data) => {
         console.log('stdout');
         if (data.toString().includes('# tests')) {
+            console.log('# tests@@@@@@@@@@%%%%%%%%%%%%%%%%%%%');
             emberTestResult = data.toString();
         }
     },
@@ -38,5 +39,9 @@ let exitProcess = () => {
     exec.exec('exit 1');
 };
 
+let getEmberTestResult = () => {
+    return emberTestResult;
+};
 
-module.exports = { emberTestResult, runESlint, runEmberTest, exitProcess };
+
+module.exports = { emberTestResult, runESlint, runEmberTest, exitProcess, getEmberTestResult };
