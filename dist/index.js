@@ -9907,6 +9907,7 @@ let getCommonGroupedComment = async () => {
         repo,
         issue_number
     }) || {};
+    console.log('commonGroupedComment', commonGroupedComment);
     return commonGroupedComment;
 };
 
@@ -26075,7 +26076,7 @@ const Config = __webpack_require__(659);
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
 
 let getExistingCommentsList = (existingMarkdownComment) => {
-
+    console.log('existingMarkdownComment', existingMarkdownComment);
     let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TESTCASE_REPORT_HEADER}</h3>`);
     testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
@@ -26104,8 +26105,8 @@ let getExistingCommentsList = (existingMarkdownComment) => {
                 message
             }
         });
-        return existingMarkdownCommentsList;
     };
+    return existingMarkdownCommentsList;
 };
 
 let getGroupedCommentMarkdown = (markdownComments) => {

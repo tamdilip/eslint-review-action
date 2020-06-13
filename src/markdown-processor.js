@@ -5,7 +5,7 @@ const Config = require('./config');
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
 
 let getExistingCommentsList = (existingMarkdownComment) => {
-
+    console.log('existingMarkdownComment', existingMarkdownComment);
     let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TESTCASE_REPORT_HEADER}</h3>`);
     testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
@@ -34,8 +34,8 @@ let getExistingCommentsList = (existingMarkdownComment) => {
                 message
             }
         });
-        return existingMarkdownCommentsList;
     };
+    return existingMarkdownCommentsList;
 };
 
 let getGroupedCommentMarkdown = (markdownComments) => {

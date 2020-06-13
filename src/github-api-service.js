@@ -24,6 +24,7 @@ let getCommonGroupedComment = async () => {
         repo,
         issue_number
     }) || {};
+    console.log('commonGroupedComment', commonGroupedComment);
     return commonGroupedComment;
 };
 
