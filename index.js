@@ -2,7 +2,6 @@ const GithubApiService = require('./src/github-api-service');
 const MarkdownProcessor = require('./src/markdown-processor');
 const CommandExecutor = require('./src/command-executor');
 const EslintReportProcessor = require('./src/eslint-report-processor');
-const core = require('@actions/core');
 
 async function runScript() {
 
@@ -27,8 +26,8 @@ async function runScript() {
         else
             GithubApiService.createCommonComment(body);
     }
-    markdownComments.filter(comment => !comment.fixed).length > 0 && core.setFailed('linting failed');
-    //markdownComments.find(comment => !comment.fixed) && CommandExecutor.exitProcess();
+
+    markdownComments.find(comment => !comment.fixed) && CommandExecutor.exitProcess();
 }
 
 runScript();

@@ -1,4 +1,5 @@
 const exec = require('@actions/exec');
+const core = require('@actions/core');
 
 let emberTestResult = '';
 
@@ -36,7 +37,7 @@ let runEmberTest = async () => {
 };
 
 let exitProcess = () => {
-    exec.exec('exit 1');
+    core.setFailed('linting failed');
 };
 
 let getEmberTestResult = () => {
