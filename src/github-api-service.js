@@ -7,6 +7,16 @@ const { context } = github,
     { repo: { owner, repo }, issue: { number: issue_number }, sha } = context,
     { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
+let getMetaInfo = () => {
+    return {
+        sha,
+        repo,
+        owner,
+        pull_number,
+        issue_number
+    }
+};
+
 let failedComments = [];
 octokit.hook.error('request', async (error, options) => {
     failedComments.push({
@@ -80,4 +90,4 @@ let createCommonComment = (body) => {
     });
 };
 
-module.exports = { failedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment };
+module.exports = { failedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment, getMetaInfo };

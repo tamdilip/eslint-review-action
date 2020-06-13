@@ -9896,6 +9896,16 @@ const { context } = github,
     { repo: { owner, repo }, issue: { number: issue_number }, sha } = context,
     { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
+let getMetaInfo = () => {
+    return {
+        sha,
+        repo,
+        owner,
+        pull_number,
+        issue_number
+    }
+};
+
 let failedComments = [];
 octokit.hook.error('request', async (error, options) => {
     failedComments.push({
@@ -9969,7 +9979,7 @@ let createCommonComment = (body) => {
     });
 };
 
-module.exports = { failedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment };
+module.exports = { failedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment, getMetaInfo };
 
 
 /***/ }),
@@ -26080,6 +26090,7 @@ const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
 
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
+const { owner, repo } = GithubApiService.getMetaInfo();
 
 let getExistingCommentsList = (existingMarkdownComment) => {
     console.log('existingMarkdownComment', existingMarkdownComment);

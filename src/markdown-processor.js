@@ -3,6 +3,7 @@ const CommandExecutor = require('./command-executor');
 const Config = require('./config');
 
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
+const { owner, repo } = GithubApiService.getMetaInfo();
 
 let getExistingCommentsList = (existingMarkdownComment) => {
     console.log('existingMarkdownComment', existingMarkdownComment);
