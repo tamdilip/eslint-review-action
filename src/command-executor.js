@@ -1,4 +1,4 @@
-import exec from '@actions/exec';
+const exec = require('@actions/exec');
 
 let emberTestResult = '';
 

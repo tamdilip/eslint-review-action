@@ -1,7 +1,7 @@
 import GithubApiService from './src/github-api-service';
-import path from 'path';
-import url from 'url';
-import fs from 'fs';
+const path = require('path');
+const url = require('url');
+const fs = require('fs');
 
 
 let getErrorFiles = () => {

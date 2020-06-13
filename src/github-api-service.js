@@ -1,4 +1,4 @@
-import Github from '@actions/github';
+const github = require('@actions/github');
 import Config from './config';
 
 const { context } = github,

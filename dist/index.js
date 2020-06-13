@@ -8647,29 +8647,21 @@ function getPageLinks (link) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var lib_github = __webpack_require__(469);
-var github_default = /*#__PURE__*/__webpack_require__.n(lib_github);
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __webpack_require__(470);
-var core_default = /*#__PURE__*/__webpack_require__.n(core);
-
 // CONCATENATED MODULE: ./src/config.js
-
+const core = __webpack_require__(470);
 
 /* harmony default export */ var config = ({
-    REPO_TOKEN: core_default().getInput('repo-token'),
-    PASSED_EMOJI: core_default().getInput('lint-pass-emoji') || '✔️',
-    FAILED_EMOJI: core_default().getInput('lint-fail-emoji') || '⛔',
-    TESTCASE_REPORT_HEADER: core_default().getInput('test-report-header') || '⚠️TEST CASE REPORT⚠️'
+    REPO_TOKEN: core.getInput('repo-token'),
+    PASSED_EMOJI: '✔️',
+    FAILED_EMOJI: '⛔',
+    TESTCASE_REPORT_HEADER: '⚠️TEST CASE REPORT⚠️'
 });
 // CONCATENATED MODULE: ./src/github-api-service.js
-
+const github = __webpack_require__(469);
 
 
 const { context } = github,
-    octokit = new github_default.a.GitHub(config.REPO_TOKEN),
+    octokit = new Github.GitHub(config.REPO_TOKEN),
     { repo: { owner: github_api_service_owner, repo: github_api_service_repo }, issue: { number: issue_number }, sha } = context,
     { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
@@ -8835,12 +8827,8 @@ let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCom
 };
 
 
-// EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
-var exec = __webpack_require__(986);
-var exec_default = /*#__PURE__*/__webpack_require__.n(exec);
-
 // CONCATENATED MODULE: ./src/command-executor.js
-
+const exec = __webpack_require__(986);
 
 let emberTestResult = '';
 
@@ -8862,7 +8850,7 @@ command_executor_options.listeners = {
 
 let runESlint = async (filenames) => {
     try {
-        await exec_default().exec('npm run lint -- ' + filenames.join(' '), [], command_executor_options);
+        await exec.exec('npm run lint -- ' + filenames.join(' '), [], command_executor_options);
     } catch (error) {
         console.log('Lint run error::', error);
     }
@@ -8870,40 +8858,28 @@ let runESlint = async (filenames) => {
 
 let runEmberTest = async () => {
     try {
-        await exec_default().exec('npm run test', [], command_executor_options);
+        await exec.exec('npm run test', [], command_executor_options);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
 };
 
 let exitProcess = () => {
-    exec_default().exec('exit 1');
+    exec.exec('exit 1');
 };
 
 
 
-// EXTERNAL MODULE: external "path"
-var external_path_ = __webpack_require__(622);
-var external_path_default = /*#__PURE__*/__webpack_require__.n(external_path_);
-
-// EXTERNAL MODULE: external "url"
-var external_url_ = __webpack_require__(835);
-var external_url_default = /*#__PURE__*/__webpack_require__.n(external_url_);
-
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __webpack_require__(747);
-var external_fs_default = /*#__PURE__*/__webpack_require__.n(external_fs_);
-
 // CONCATENATED MODULE: ./src/eslint-report-processor.js
 
-
-
-
+const path = __webpack_require__(622);
+const url = __webpack_require__(835);
+const eslint_report_processor_fs = __webpack_require__(747);
 
 
 let getErrorFiles = () => {
-    const reportPath = external_path_default().resolve('eslint_report.json');
-    const reportFile = external_fs_default().readFileSync(reportPath, 'utf-8')
+    const reportPath = path.resolve('eslint_report.json');
+    const reportFile = eslint_report_processor_fs.readFileSync(reportPath, 'utf-8')
     const reportContents = JSON.parse(reportFile);
     const errorFiles = reportContents.filter(es => es.errorCount > 0);
     return errorFiles;
@@ -8928,7 +8904,7 @@ let createOrUpdateEslintComment = async (changedFiles) => {
     for await (let errorFile of errorFiles) {
         const filePath = errorFile.filePath.replace(process.cwd() + '/', '');
         const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == filePath);
-        const url_parts = external_url_default().parse(prFilesWithError.contents_url, true);
+        const url_parts = url.parse(prFilesWithError.contents_url, true);
         const commit_id = url_parts.query.ref;
 
         try {
