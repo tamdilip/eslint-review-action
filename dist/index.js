@@ -42,8 +42,6 @@ module.exports =
 /******/ 		// Load entry module and return exports
 /******/ 		return __webpack_require__(104);
 /******/ 	};
-/******/ 	// initialize runtime
-/******/ 	runtime(__webpack_require__);
 /******/
 /******/ 	// run startup
 /******/ 	return startup();
@@ -8771,11 +8769,8 @@ module.exports = require("net");
 /***/ }),
 
 /***/ 641:
-/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, __unusedexports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createOrUpdateEslintComment", function() { return createOrUpdateEslintComment; });
 const GithubApiService = __webpack_require__(694);
 const path = __webpack_require__(622);
 const url = __webpack_require__(835);
@@ -8828,7 +8823,7 @@ let createOrUpdateEslintComment = async (changedFiles) => {
 
 };
 
-
+module.exports = { createOrUpdateEslintComment };
 
 /***/ }),
 
@@ -8907,18 +8902,18 @@ if (process.platform === 'linux') {
 /***/ }),
 
 /***/ 659:
-/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, __unusedexports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
 const core = __webpack_require__(470);
 
-/* harmony default export */ __webpack_exports__["default"] = ({
+module.exports = {
     REPO_TOKEN: core.getInput('repo-token'),
     PASSED_EMOJI: '✔️',
     FAILED_EMOJI: '⛔',
     TESTCASE_REPORT_HEADER: '⚠️TEST CASE REPORT⚠️'
-});
+}
+
+
 
 /***/ }),
 
@@ -9201,14 +9196,8 @@ module.exports = function btoa(str) {
 /***/ }),
 
 /***/ 681:
-/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, __unusedexports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "emberTestResult", function() { return emberTestResult; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "runESlint", function() { return runESlint; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "runEmberTest", function() { return runEmberTest; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "exitProcess", function() { return exitProcess; });
 const exec = __webpack_require__(986);
 
 let emberTestResult = '';
@@ -9250,7 +9239,7 @@ let exitProcess = () => {
 };
 
 
-
+module.exports = { emberTestResult, runESlint, runEmberTest, exitProcess };
 
 /***/ }),
 
@@ -9890,18 +9879,8 @@ exports.Deprecation = Deprecation;
 /***/ }),
 
 /***/ 694:
-/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, __unusedexports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "failedComments", function() { return failedComments; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCommonGroupedComment", function() { return getCommonGroupedComment; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFilesChanged", function() { return getFilesChanged; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCommentsInPR", function() { return getCommentsInPR; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "commentEslistError", function() { return commentEslistError; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCommentLineURL", function() { return getCommentLineURL; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateCommonComment", function() { return updateCommonComment; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCommonComment", function() { return createCommonComment; });
 const github = __webpack_require__(469);
 const Config = __webpack_require__(659);
 const fs = __webpack_require__(747);
@@ -9983,7 +9962,7 @@ let createCommonComment = (body) => {
     });
 };
 
-
+module.exports = { failedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment };
 
 
 /***/ }),
@@ -26087,13 +26066,8 @@ exports.withCustomRequest = withCustomRequest;
 /***/ }),
 
 /***/ 909:
-/***/ (function(__unusedmodule, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, __unusedexports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getExistingCommentsList", function() { return getExistingCommentsList; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getGroupedCommentMarkdown", function() { return getGroupedCommentMarkdown; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getUpdatedCommonCommentsList", function() { return getUpdatedCommonCommentsList; });
 const GithubApiService = __webpack_require__(694);
 const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
@@ -26172,7 +26146,7 @@ let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCom
     });
 };
 
-
+module.exports = { getExistingCommentsList, getGroupedCommentMarkdown, getUpdatedCommonCommentsList };
 
 /***/ }),
 
@@ -26871,31 +26845,4 @@ exports.exec = exec;
 
 /***/ })
 
-/******/ },
-/******/ function(__webpack_require__) { // webpackRuntimeModules
-/******/ 	"use strict";
-/******/ 
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	!function() {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = function(exports) {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	}();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getter */
-/******/ 	!function() {
-/******/ 		// define getter function for harmony exports
-/******/ 		var hasOwnProperty = Object.prototype.hasOwnProperty;
-/******/ 		__webpack_require__.d = function(exports, name, getter) {
-/******/ 			if(!hasOwnProperty.call(exports, name)) {
-/******/ 				Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 			}
-/******/ 		};
-/******/ 	}();
-/******/ 	
-/******/ }
-);
+/******/ });

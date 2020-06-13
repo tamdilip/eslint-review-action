@@ -50,4 +50,4 @@ let createOrUpdateEslintComment = async (changedFiles) => {
 
 };
 
-export { createOrUpdateEslintComment };
+module.exports = { createOrUpdateEslintComment };

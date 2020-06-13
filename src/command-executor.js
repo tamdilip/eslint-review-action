@@ -39,4 +39,4 @@ let exitProcess = () => {
 };
 
 
-export { emberTestResult, runESlint, runEmberTest, exitProcess };
+module.exports = { emberTestResult, runESlint, runEmberTest, exitProcess };

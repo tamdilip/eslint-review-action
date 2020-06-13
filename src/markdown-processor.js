@@ -76,4 +76,4 @@ let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCom
     });
 };
 
-export { getExistingCommentsList, getGroupedCommentMarkdown, getUpdatedCommonCommentsList };
+module.exports = { getExistingCommentsList, getGroupedCommentMarkdown, getUpdatedCommonCommentsList };
