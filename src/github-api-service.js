@@ -19,7 +19,7 @@ octokit.hook.error('request', async (error, options) => {
 });
 
 let getCommonGroupedComment = async () => {
-    let { data: { 0: commonGroupedComment = '' } = [] } = await octokit.issues.listComments({
+    let { data: { 0: commonGroupedComment = {} } = [{}] } = await octokit.issues.listComments({
         owner,
         repo,
         issue_number
