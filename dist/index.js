@@ -8658,6 +8658,7 @@ const core = __webpack_require__(470);
 });
 // CONCATENATED MODULE: ./src/github-api-service.js
 const github = __webpack_require__(469);
+const fs = __webpack_require__(747);
 
 
 const { context } = github,

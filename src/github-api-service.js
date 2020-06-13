@@ -1,4 +1,5 @@
 const github = require('@actions/github');
+const fs = require('fs');
 import Config from './config';
 
 const { context } = github,
