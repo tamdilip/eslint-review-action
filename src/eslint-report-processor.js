@@ -25,7 +25,7 @@ let getExistingPrComments = async () => {
 };
 
 let createOrUpdateEslintComment = async (changedFiles) => {
-    const existingPRcomments = getExistingPrComments();
+    const existingPRcomments = await getExistingPrComments();
     const errorFiles = getErrorFiles();
 
     for await (let errorFile of errorFiles) {
