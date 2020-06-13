@@ -1,6 +1,6 @@
 import Config from './config';
-import CommandExecutor from './src/command-executor';
-import GithubApiService from './src/github-api-service';
+import CommandExecutor from './command-executor';
+import GithubApiService from './github-api-service';
 
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
 
@@ -71,7 +71,7 @@ let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCom
             issue.fixed = true;
             issue.emoji = PASSED_EMOJI;
         }
-        
+
         return issue;
     });
 };
