@@ -42,9 +42,10 @@ let createOrUpdateEslintComment = async (changedFiles) => {
             for await (let message of errorFile.messages) {
                 let alreadExistsPRComment = existingPRcomments.filter((comment) => comment.path == filePath && comment.line == message.line && comment.message.trim() == message.message.trim());
 
-                if (alreadExistsPRComment.length == 0)
-                    await GithubApiService.commentEslistError({ message, commit_id, path: filePath }) && (isLintIssueAvailable = true);
-
+                if (alreadExistsPRComment.length == 0) {
+                    await GithubApiService.commentEslistError({ message, commit_id, path: filePath });
+                    isLintIssueAvailable = true;
+                }
             }
         }
         catch (error) {
