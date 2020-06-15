@@ -828,10 +828,7 @@ async function runScript() {
             GithubApiService.createCommonComment(body);
     }
 
-    console.log('EslintReportProcessor.getErrorFiles()', EslintReportProcessor.getErrorFiles().length);
-    console.log('EslintReportProcessor.getLintStatus()', EslintReportProcessor.getLintStatus());
-
-    (EslintReportProcessor.getLintStatus() || markdownComments.find(comment => !comment.fixed)) && CommandExecutor.exitProcess();
+    (EslintReportProcessor.getErrorFiles().length > 0 || markdownComments.find(comment => !comment.fixed)) && CommandExecutor.exitProcess();
 }
 
 runScript();
@@ -8779,11 +8776,6 @@ const path = __webpack_require__(622);
 const url = __webpack_require__(835);
 const fs = __webpack_require__(747);
 
-let isLintIssueAvailable = false;
-let getLintStatus = () => {
-    return isLintIssueAvailable;
-}
-
 let getErrorFiles = () => {
     const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
@@ -8818,10 +8810,8 @@ let createOrUpdateEslintComment = async (changedFiles) => {
             for await (let message of errorFile.messages) {
                 let alreadExistsPRComment = existingPRcomments.filter((comment) => comment.path == filePath && comment.line == message.line && comment.message.trim() == message.message.trim());
 
-                if (alreadExistsPRComment.length == 0) {
+                if (alreadExistsPRComment.length == 0)
                     await GithubApiService.commentEslistError({ message, commit_id, path: filePath });
-                    isLintIssueAvailable = true;
-                }
             }
         }
         catch (error) {
@@ -8831,7 +8821,7 @@ let createOrUpdateEslintComment = async (changedFiles) => {
 
 };
 
-module.exports = { createOrUpdateEslintComment, getLintStatus, getErrorFiles };
+module.exports = { createOrUpdateEslintComment, getErrorFiles };
 
 /***/ }),
 

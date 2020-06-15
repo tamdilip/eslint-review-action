@@ -3,11 +3,6 @@ const path = require('path');
 const url = require('url');
 const fs = require('fs');
 
-let isLintIssueAvailable = false;
-let getLintStatus = () => {
-    return isLintIssueAvailable;
-}
-
 let getErrorFiles = () => {
     const reportPath = path.resolve('eslint_report.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
@@ -42,10 +37,8 @@ let createOrUpdateEslintComment = async (changedFiles) => {
             for await (let message of errorFile.messages) {
                 let alreadExistsPRComment = existingPRcomments.filter((comment) => comment.path == filePath && comment.line == message.line && comment.message.trim() == message.message.trim());
 
-                if (alreadExistsPRComment.length == 0) {
+                if (alreadExistsPRComment.length == 0)
                     await GithubApiService.commentEslistError({ message, commit_id, path: filePath });
-                    isLintIssueAvailable = true;
-                }
             }
         }
         catch (error) {
@@ -55,4 +48,4 @@ let createOrUpdateEslintComment = async (changedFiles) => {
 
 };
 
-module.exports = { createOrUpdateEslintComment, getLintStatus, getErrorFiles };
+module.exports = { createOrUpdateEslintComment, getErrorFiles };
