@@ -828,7 +828,7 @@ async function runScript() {
             GithubApiService.createCommonComment(body);
     }
 
-    markdownComments.find(comment => !comment.fixed) && CommandExecutor.exitProcess();
+    (EslintReportProcessor.getLintStatus() || markdownComments.find(comment => !comment.fixed)) && CommandExecutor.exitProcess();
 }
 
 runScript();
@@ -8776,6 +8776,10 @@ const path = __webpack_require__(622);
 const url = __webpack_require__(835);
 const fs = __webpack_require__(747);
 
+let isLintIssueAvailable = false;
+let getLintStatus = () => {
+    return isLintIssueAvailable;
+}
 
 let getErrorFiles = () => {
     const reportPath = path.resolve('eslint_report.json');
@@ -8812,7 +8816,7 @@ let createOrUpdateEslintComment = async (changedFiles) => {
                 let alreadExistsPRComment = existingPRcomments.filter((comment) => comment.path == filePath && comment.line == message.line && comment.message.trim() == message.message.trim());
 
                 if (alreadExistsPRComment.length == 0)
-                    await GithubApiService.commentEslistError({ message, commit_id, path: filePath });
+                    await GithubApiService.commentEslistError({ message, commit_id, path: filePath }) && (isLintIssueAvailable = true);
 
             }
         }
@@ -8823,7 +8827,7 @@ let createOrUpdateEslintComment = async (changedFiles) => {
 
 };
 
-module.exports = { createOrUpdateEslintComment };
+module.exports = { createOrUpdateEslintComment, getLintStatus };
 
 /***/ }),
 
@@ -9222,7 +9226,6 @@ options.listeners = {
 let runESlint = async (filenames) => {
     try {
         await exec.exec('npx eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '), [], options);
-        //await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
     } catch (error) {
         console.log('Lint run error::', error);
     }
@@ -9231,7 +9234,6 @@ let runESlint = async (filenames) => {
 let runEmberTest = async () => {
     try {
         await exec.exec('npx ember test', [], options);
-        //await exec.exec('npm run test', [], options);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
@@ -9924,7 +9926,6 @@ let getCommonGroupedComment = async () => {
         repo,
         issue_number
     }) || {};
-    console.log('commonGroupedComment', commonGroupedComment);
     return commonGroupedComment;
 };
 
@@ -26094,7 +26095,6 @@ const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
 const { owner, repo } = GithubApiService.getMetaInfo();
 
 let getExistingCommentsList = (existingMarkdownComment) => {
-    console.log('existingMarkdownComment', existingMarkdownComment);
     let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TESTCASE_REPORT_HEADER}</h3>`);
     testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
@@ -26139,7 +26139,6 @@ let getGroupedCommentMarkdown = (markdownComments) => {
         return acc;
     }, commentsCountLabel);
 
-    console.log('CommandExecutor.emberTestResult', CommandExecutor.getEmberTestResult());
     let [TEST, PASS, SKIP, FAIL] = CommandExecutor.getEmberTestResult().split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
     let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
