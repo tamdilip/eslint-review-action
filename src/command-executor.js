@@ -12,10 +12,10 @@ options.listeners = {
         }
     },
     stderr: (data) => {
-        console.log('stderr');
+        console.log('stderr', data.toString());
     },
     errline: (data) => {
-        console.log('errline');
+        console.log('errline', data.toString());
     }
 };
 
@@ -30,7 +30,8 @@ let runESlint = async (filenames) => {
 
 let runEmberTest = async () => {
     try {
-        await exec.exec('npm run test', [], options);
+        await exec.exec('npm bin ember test', [], options);
+        //await exec.exec('npm run test', [], options);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
