@@ -9208,7 +9208,6 @@ options.listeners = {
     stdout: (data) => {
         console.log('stdout');
         if (data.toString().includes('# tests')) {
-            console.log('# tests@@@@@@@@@@%%%%%%%%%%%%%%%%%%%');
             emberTestResult = data.toString();
         }
     },
@@ -9222,7 +9221,7 @@ options.listeners = {
 
 let runESlint = async (filenames) => {
     try {
-        await exec.exec('eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '), [], options);
+        await exec.exec('npm bin eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '), [], options);
         //await exec.exec('npm run lint -- ' + filenames.join(' '), [], options);
     } catch (error) {
         console.log('Lint run error::', error);
