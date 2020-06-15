@@ -8831,7 +8831,7 @@ let createOrUpdateEslintComment = async (changedFiles) => {
 
 };
 
-module.exports = { createOrUpdateEslintComment, getLintStatus };
+module.exports = { createOrUpdateEslintComment, getLintStatus, getErrorFiles };
 
 /***/ }),
 
