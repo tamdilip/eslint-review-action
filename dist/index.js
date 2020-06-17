@@ -9248,7 +9248,7 @@ let runESlint = async (filenames) => {
 
 let runEmberTest = async () => {
     try {
-        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], options);
+        await exec.exec('npx ember test -r xunit --silent > test_report.xml', []);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
