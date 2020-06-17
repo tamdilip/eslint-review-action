@@ -1790,6 +1790,7 @@ module.exports = require("child_process");
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 const CommandExecutor = __webpack_require__(681);
+const xml2js = __webpack_require__(751);
 const path = __webpack_require__(622);
 const fs = __webpack_require__(747);
 
@@ -10166,6 +10167,14 @@ function sync (path, options) {
 /***/ (function(module) {
 
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 751:
+/***/ (function(module) {
+
+module.exports = eval("require")("xml2js");
+
 
 /***/ }),
 

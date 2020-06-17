@@ -1,4 +1,5 @@
 const CommandExecutor = require('./command-executor');
+const xml2js = require('xml2js');
 const path = require('path');
 const fs = require('fs');
 
