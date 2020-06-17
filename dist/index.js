@@ -1789,12 +1789,14 @@ module.exports = require("child_process");
 /***/ 135:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
+const CommandExecutor = __webpack_require__(681);
 const path = __webpack_require__(622);
 const fs = __webpack_require__(747);
 
 let getTestCounts = async () => {
-    const reportPath = path.resolve('test_report.xml');
-    const xmlReport = fs.readFileSync(reportPath, 'utf-8');
+    const xmlReport = CommandExecutor.getEmberTestReportXmlString();
+    /* const reportPath = path.resolve('test_report.xml');
+    const xmlReport = fs.readFileSync(reportPath, 'utf-8'); */
     const jsonReport = await xml2js.parseStringPromise(xmlReport, { mergeAttrs: true, strict: false, explicitArray: false });
     let testCount = {
         TEST: parseInt(jsonReport.TESTSUITE.TESTS),
@@ -9225,30 +9227,50 @@ module.exports = function btoa(str) {
 const exec = __webpack_require__(986);
 const core = __webpack_require__(470);
 
-const options = {};
-options.listeners = {
-    stdout: (data) => {
-        console.log('stdout');
+const eslintOptions = {};
+eslintOptions.listeners = {
+    stdout: () => {
+        console.log('Eslint::stdout:: ');
     },
-    stderr: (data) => {
-        console.log('stderr');
+    stderr: () => {
+        console.log('Eslint::stderr:: ');
     },
-    errline: (data) => {
-        console.log('errline');
+    errline: () => {
+        console.log('Eslint::errline:: ');
     }
 };
 
 let runESlint = async (filenames) => {
     try {
-        await exec.exec('npx eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '), [], options);
+        await exec.exec('npx eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '), [], eslintOptions);
     } catch (error) {
         console.log('Lint run error::', error);
     }
 };
 
+let emberTestReportXmlString = '';
+
+let getEmberTestReportXmlString = () => {
+    return emberTestReportXmlString;
+};
+
+const emberTestOptions = {};
+emberTestOptions.listeners = {
+    stdout: (data) => {
+        console.log('EmberTest::stdout:: ', data.toString());
+        emberTestReportXmlString = data.toString();
+    },
+    stderr: () => {
+        console.log('EmberTest::stderr:: ');
+    },
+    errline: () => {
+        console.log('EmberTest::errline:: ');
+    }
+};
+
 let runEmberTest = async () => {
     try {
-        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], options);
+        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], emberTestOptions);
         await exec.exec('ls');
     } catch (error) {
         console.log('Ember Test run error::', error);
@@ -9259,7 +9281,7 @@ let exitProcess = () => {
     core.setFailed('linting failed');
 };
 
-module.exports = { runESlint, runEmberTest, exitProcess };
+module.exports = { runESlint, runEmberTest, exitProcess, getEmberTestReportXmlString };
 
 /***/ }),
 
