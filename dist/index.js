@@ -1797,9 +1797,9 @@ let getTestCounts = async () => {
     const xmlReport = fs.readFileSync(reportPath, 'utf-8');
     const jsonReport = await xml2js.parseStringPromise(xmlReport, { mergeAttrs: true, strict: false, explicitArray: false });
     let testCount = {
-        TEST: parseInt(result.TESTSUITE.TESTS),
-        SKIP: parseInt(result.TESTSUITE.SKIPPED),
-        FAIL: parseInt(result.TESTSUITE.FAILURES)
+        TEST: parseInt(jsonReport.TESTSUITE.TESTS),
+        SKIP: parseInt(jsonReport.TESTSUITE.SKIPPED),
+        FAIL: parseInt(jsonReport.TESTSUITE.FAILURES)
     };
     testCount.PASS = testCount.TEST - testCount.FAIL;
     console.log(testCount);
@@ -9248,7 +9248,7 @@ let runESlint = async (filenames) => {
 
 let runEmberTest = async () => {
     try {
-        await exec.exec('npx ember test -r xunit --silent > test_report.xml', []);
+        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], options);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
