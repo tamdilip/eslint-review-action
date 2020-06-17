@@ -19,7 +19,7 @@ async function runScript() {
         markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
 
     if (markdownComments.length > 0) {
-        const body = MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
+        const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
         if (updatedCommonCommentsList.length > 0)
             GithubApiService.updateCommonComment({ comment_id, body });

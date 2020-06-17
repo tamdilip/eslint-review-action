@@ -1,3 +1,5 @@
+
+const TestReportProcessor = require('./test-report-processor');
 const GithubApiService = require('./github-api-service');
 const CommandExecutor = require('./command-executor');
 const Config = require('./config');
@@ -38,7 +40,7 @@ let getExistingCommentsList = (existingMarkdownComment) => {
     return existingMarkdownCommentsList;
 };
 
-let getGroupedCommentMarkdown = (markdownComments) => {
+let getGroupedCommentMarkdown = async (markdownComments) => {
     const pendingIssues = markdownComments.filter(comment => !comment.fixed);
     const fixedIssues = markdownComments.filter(comment => comment.fixed);
 
@@ -50,7 +52,7 @@ let getGroupedCommentMarkdown = (markdownComments) => {
         return acc;
     }, commentsCountLabel);
 
-    let [TEST, PASS, SKIP, FAIL] = CommandExecutor.getEmberTestResult().split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
+    let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts();
     let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
     overallCommentBody = overallCommentBody + emberTestBody;

@@ -820,7 +820,7 @@ async function runScript() {
         markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
 
     if (markdownComments.length > 0) {
-        const body = MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
+        const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
         if (updatedCommonCommentsList.length > 0)
             GithubApiService.updateCommonComment({ comment_id, body });
@@ -1783,6 +1783,31 @@ module.exports = uniq;
 /***/ (function(module) {
 
 module.exports = require("child_process");
+
+/***/ }),
+
+/***/ 135:
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+const path = __webpack_require__(622);
+const fs = __webpack_require__(747);
+
+let getTestCounts = async () => {
+    const reportPath = path.resolve('test_report.xml');
+    const xmlReport = fs.readFileSync(reportPath, 'utf-8');
+    const jsonReport = await xml2js.parseStringPromise(xmlReport, { mergeAttrs: true, strict: false, explicitArray: false });
+    let testCount = {
+        TEST: parseInt(result.TESTSUITE.TESTS),
+        SKIP: parseInt(result.TESTSUITE.SKIPPED),
+        FAIL: parseInt(result.TESTSUITE.FAILURES)
+    };
+    testCount.PASS = testCount.TEST - testCount.FAIL;
+    console.log(testCount);
+    return testCount;
+};
+
+module.exports = { getTestCounts };
+
 
 /***/ }),
 
@@ -8823,6 +8848,7 @@ let createOrUpdateEslintComment = async (changedFiles) => {
 
 module.exports = { createOrUpdateEslintComment, getErrorFiles };
 
+
 /***/ }),
 
 /***/ 649:
@@ -9199,21 +9225,16 @@ module.exports = function btoa(str) {
 const exec = __webpack_require__(986);
 const core = __webpack_require__(470);
 
-let emberTestResult = '';
-
 const options = {};
 options.listeners = {
     stdout: (data) => {
         console.log('stdout');
-        if (data.toString().includes('# tests')) {
-            emberTestResult = data.toString();
-        }
     },
     stderr: (data) => {
-        console.log('stderr', data.toString());
+        console.log('stderr');
     },
     errline: (data) => {
-        console.log('errline', data.toString());
+        console.log('errline');
     }
 };
 
@@ -9227,7 +9248,7 @@ let runESlint = async (filenames) => {
 
 let runEmberTest = async () => {
     try {
-        await exec.exec('npx ember test', [], options);
+        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], options);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
@@ -9237,12 +9258,7 @@ let exitProcess = () => {
     core.setFailed('linting failed');
 };
 
-let getEmberTestResult = () => {
-    return emberTestResult;
-};
-
-
-module.exports = { emberTestResult, runESlint, runEmberTest, exitProcess, getEmberTestResult };
+module.exports = { runESlint, runEmberTest, exitProcess };
 
 /***/ }),
 
@@ -26081,6 +26097,8 @@ exports.withCustomRequest = withCustomRequest;
 /***/ 909:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
+
+const TestReportProcessor = __webpack_require__(135);
 const GithubApiService = __webpack_require__(694);
 const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
@@ -26121,7 +26139,7 @@ let getExistingCommentsList = (existingMarkdownComment) => {
     return existingMarkdownCommentsList;
 };
 
-let getGroupedCommentMarkdown = (markdownComments) => {
+let getGroupedCommentMarkdown = async (markdownComments) => {
     const pendingIssues = markdownComments.filter(comment => !comment.fixed);
     const fixedIssues = markdownComments.filter(comment => comment.fixed);
 
@@ -26133,7 +26151,7 @@ let getGroupedCommentMarkdown = (markdownComments) => {
         return acc;
     }, commentsCountLabel);
 
-    let [TEST, PASS, SKIP, FAIL] = CommandExecutor.getEmberTestResult().split("#").map(t => t.replace(/^\D+/g, '').trim()).slice(1);
+    let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts();
     let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
     overallCommentBody = overallCommentBody + emberTestBody;

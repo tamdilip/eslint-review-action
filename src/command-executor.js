@@ -1,21 +1,16 @@
 const exec = require('@actions/exec');
 const core = require('@actions/core');
 
-let emberTestResult = '';
-
 const options = {};
 options.listeners = {
     stdout: (data) => {
         console.log('stdout');
-        if (data.toString().includes('# tests')) {
-            emberTestResult = data.toString();
-        }
     },
     stderr: (data) => {
-        console.log('stderr', data.toString());
+        console.log('stderr');
     },
     errline: (data) => {
-        console.log('errline', data.toString());
+        console.log('errline');
     }
 };
 
@@ -29,7 +24,7 @@ let runESlint = async (filenames) => {
 
 let runEmberTest = async () => {
     try {
-        await exec.exec('npx ember test', [], options);
+        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], options);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
@@ -39,9 +34,4 @@ let exitProcess = () => {
     core.setFailed('linting failed');
 };
 
-let getEmberTestResult = () => {
-    return emberTestResult;
-};
-
-
-module.exports = { emberTestResult, runESlint, runEmberTest, exitProcess, getEmberTestResult };
+module.exports = { runESlint, runEmberTest, exitProcess };
