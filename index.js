@@ -18,14 +18,12 @@ async function runScript() {
         updatedCommonCommentsList = MarkdownProcessor.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),
         markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
 
-    if (markdownComments.length > 0) {
-        const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
+    const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
-        if (updatedCommonCommentsList.length > 0)
-            GithubApiService.updateCommonComment({ comment_id, body });
-        else
-            GithubApiService.createCommonComment(body);
-    }
+    if (updatedCommonCommentsList.length > 0)
+        GithubApiService.updateCommonComment({ comment_id, body });
+    else
+        GithubApiService.createCommonComment(body);
 
     (EslintReportProcessor.getErrorFiles().length > 0 || markdownComments.find(comment => !comment.fixed)) && CommandExecutor.exitProcess();
 }

@@ -838,14 +838,12 @@ async function runScript() {
         updatedCommonCommentsList = MarkdownProcessor.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),
         markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
 
-    if (markdownComments.length > 0) {
-        const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
+    const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
-        if (updatedCommonCommentsList.length > 0)
-            GithubApiService.updateCommonComment({ comment_id, body });
-        else
-            GithubApiService.createCommonComment(body);
-    }
+    if (updatedCommonCommentsList.length > 0)
+        GithubApiService.updateCommonComment({ comment_id, body });
+    else
+        GithubApiService.createCommonComment(body);
 
     (EslintReportProcessor.getErrorFiles().length > 0 || markdownComments.find(comment => !comment.fixed)) && CommandExecutor.exitProcess();
 }
@@ -1810,13 +1808,9 @@ module.exports = require("child_process");
 
 const CommandExecutor = __webpack_require__(681);
 const xml2js = __webpack_require__(992);
-const path = __webpack_require__(622);
-const fs = __webpack_require__(747);
 
 let getTestCounts = async () => {
     const xmlReport = CommandExecutor.getEmberTestReportXmlString();
-    /* const reportPath = path.resolve('test_report.xml');
-    const xmlReport = fs.readFileSync(reportPath, 'utf-8'); */
     const jsonReport = await xml2js.parseStringPromise(xmlReport, { mergeAttrs: true, strict: false, explicitArray: false });
     let testCount = {
         TEST: parseInt(jsonReport.TESTSUITE.TESTS),
@@ -32586,7 +32580,6 @@ exports.withCustomRequest = withCustomRequest;
 
 const TestReportProcessor = __webpack_require__(135);
 const GithubApiService = __webpack_require__(694);
-const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
 
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
@@ -32629,13 +32622,16 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
     const pendingIssues = markdownComments.filter(comment => !comment.fixed);
     const fixedIssues = markdownComments.filter(comment => comment.fixed);
 
-    let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
-    let overallCommentBody = markdownComments.reduce((acc, val) => {
-        const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
-        acc = acc + `* ${link}\r\n`;
-        acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
-        return acc;
-    }, commentsCountLabel);
+    let overallCommentBody = '';
+    if (!!pendingIssues.length && !!fixedIssues.length) {
+        let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
+        overallCommentBody = markdownComments.reduce((acc, val) => {
+            const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
+            acc = acc + `* ${link}\r\n`;
+            acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
+            return acc;
+        }, commentsCountLabel);
+    }
 
     let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts();
     let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;

@@ -1,7 +1,6 @@
 
 const TestReportProcessor = require('./test-report-processor');
 const GithubApiService = require('./github-api-service');
-const CommandExecutor = require('./command-executor');
 const Config = require('./config');
 
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
@@ -44,13 +43,16 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
     const pendingIssues = markdownComments.filter(comment => !comment.fixed);
     const fixedIssues = markdownComments.filter(comment => comment.fixed);
 
-    let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
-    let overallCommentBody = markdownComments.reduce((acc, val) => {
-        const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
-        acc = acc + `* ${link}\r\n`;
-        acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
-        return acc;
-    }, commentsCountLabel);
+    let overallCommentBody = '';
+    if (!!pendingIssues.length && !!fixedIssues.length) {
+        let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
+        overallCommentBody = markdownComments.reduce((acc, val) => {
+            const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
+            acc = acc + `* ${link}\r\n`;
+            acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
+            return acc;
+        }, commentsCountLabel);
+    }
 
     let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts();
     let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
