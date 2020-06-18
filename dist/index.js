@@ -841,7 +841,7 @@ async function runScript() {
     const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
     console.log('updatedCommonCommentsList', updatedCommonCommentsList);
-    if (updatedCommonCommentsList.length > 0)
+    if (existingMarkdownComment)
         GithubApiService.updateCommonComment({ comment_id, body });
     else
         GithubApiService.createCommonComment(body);
