@@ -18,6 +18,12 @@ let getMetaInfo = () => {
 };
 
 let failedComments = [];
+let getFailedComments = () => {
+    console.log('failedComments', failedComments);
+    return failedComments;
+};
+
+
 octokit.hook.error('request', async (error, options) => {
     failedComments.push({
         fixed: false,
@@ -34,6 +40,7 @@ let getCommonGroupedComment = async () => {
         repo,
         issue_number
     }) || {};
+    console.log('commonGroupedComment', commonGroupedComment);
     return commonGroupedComment;
 };
 
@@ -89,4 +96,4 @@ let createCommonComment = (body) => {
     });
 };
 
-module.exports = { failedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment, getMetaInfo };
+module.exports = { getFailedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment, getMetaInfo };

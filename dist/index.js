@@ -834,12 +834,13 @@ async function runScript() {
 
     let { body: existingMarkdownComment = '', id: comment_id } = await GithubApiService.getCommonGroupedComment(),
         existingMarkdownCommentsList = await MarkdownProcessor.getExistingCommentsList(existingMarkdownComment),
-        { failedComments: newMarkdownCommentsList } = GithubApiService,
+        newMarkdownCommentsList = GithubApiService.getFailedComments(),
         updatedCommonCommentsList = MarkdownProcessor.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),
         markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
 
     const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
+    console.log('updatedCommonCommentsList', updatedCommonCommentsList);
     if (updatedCommonCommentsList.length > 0)
         GithubApiService.updateCommonComment({ comment_id, body });
     else
@@ -14216,6 +14217,12 @@ let getMetaInfo = () => {
 };
 
 let failedComments = [];
+let getFailedComments = () => {
+    console.log('failedComments', failedComments);
+    return failedComments;
+};
+
+
 octokit.hook.error('request', async (error, options) => {
     failedComments.push({
         fixed: false,
@@ -14232,6 +14239,7 @@ let getCommonGroupedComment = async () => {
         repo,
         issue_number
     }) || {};
+    console.log('commonGroupedComment', commonGroupedComment);
     return commonGroupedComment;
 };
 
@@ -14287,7 +14295,7 @@ let createCommonComment = (body) => {
     });
 };
 
-module.exports = { failedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment, getMetaInfo };
+module.exports = { getFailedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment, getMetaInfo };
 
 
 /***/ }),
@@ -32586,6 +32594,7 @@ const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
 const { owner, repo } = GithubApiService.getMetaInfo();
 
 let getExistingCommentsList = (existingMarkdownComment) => {
+    console.log('existingMarkdownComment', existingMarkdownComment);
     let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TESTCASE_REPORT_HEADER}</h3>`);
     testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
@@ -32615,10 +32624,12 @@ let getExistingCommentsList = (existingMarkdownComment) => {
             }
         });
     };
+    console.log('existingMarkdownCommentsList', existingMarkdownCommentsList);
     return existingMarkdownCommentsList;
 };
 
 let getGroupedCommentMarkdown = async (markdownComments) => {
+    console.log('getGroupedCommentMarkdown::markdownComments', markdownComments);
     const pendingIssues = markdownComments.filter(comment => !comment.fixed);
     const fixedIssues = markdownComments.filter(comment => comment.fixed);
 
@@ -32636,13 +32647,17 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
     let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts();
     let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
+    console.log('getGroupedCommentMarkdown::overallCommentBody', overallCommentBody);
+    console.log('getGroupedCommentMarkdown::emberTestBody', emberTestBody);
     overallCommentBody = overallCommentBody + emberTestBody;
 
     return overallCommentBody;
 };
 
 let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCommentsList) => {
-    return existingMarkdownCommentsList.map((issue) => {
+    console.log('getUpdatedCommonCommentsList::existingMarkdownCommentsList', existingMarkdownCommentsList);
+    console.log('getUpdatedCommonCommentsList::newMarkdownCommentsList', newMarkdownCommentsList);
+    let updatedCommonCommentsList = existingMarkdownCommentsList.map((issue) => {
         const existingComment = newMarkdownCommentsList.find((message) => message.line == issue.line && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
 
         if (existingComment) {
@@ -32656,6 +32671,8 @@ let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCom
 
         return issue;
     });
+    console.log('getUpdatedCommonCommentsList::updatedCommonCommentsList', updatedCommonCommentsList);
+    return updatedCommonCommentsList;
 };
 
 module.exports = { getExistingCommentsList, getGroupedCommentMarkdown, getUpdatedCommonCommentsList };

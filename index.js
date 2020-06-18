@@ -14,12 +14,13 @@ async function runScript() {
 
     let { body: existingMarkdownComment = '', id: comment_id } = await GithubApiService.getCommonGroupedComment(),
         existingMarkdownCommentsList = await MarkdownProcessor.getExistingCommentsList(existingMarkdownComment),
-        { failedComments: newMarkdownCommentsList } = GithubApiService,
+        newMarkdownCommentsList = GithubApiService.getFailedComments(),
         updatedCommonCommentsList = MarkdownProcessor.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),
         markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
 
     const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
+    console.log('updatedCommonCommentsList', updatedCommonCommentsList);
     if (updatedCommonCommentsList.length > 0)
         GithubApiService.updateCommonComment({ comment_id, body });
     else
