@@ -44,7 +44,7 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
     const fixedIssues = markdownComments.filter(comment => comment.fixed);
 
     let overallCommentBody = '';
-    if (!!pendingIssues.length && !!fixedIssues.length) {
+    if (!!markdownComments.length || !!fixedIssues.length) {
         let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
         overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
