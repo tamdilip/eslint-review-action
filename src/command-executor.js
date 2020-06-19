@@ -45,7 +45,8 @@ emberTestOptions.listeners = {
 
 let runEmberTest = async () => {
     try {
-        await exec.exec('npx COVERAGE=true ember test -r xunit --silent > test_report.xml', [], emberTestOptions);
+        core.exportVariable('COVERAGE', 'true');
+        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], emberTestOptions);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
