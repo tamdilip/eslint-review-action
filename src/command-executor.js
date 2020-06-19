@@ -51,8 +51,38 @@ let runEmberTest = async () => {
     }
 };
 
+
+let npmAuditJson = '';
+
+let getNpmAuditJson = () => {
+    return JSON.parse(npmAuditJson);
+};
+
+const npmAuditOptions = {};
+npmAuditOptions.listeners = {
+    stdout: (data) => {
+        console.log('npmAudit::stdout:: ', data.toString());
+        npmAuditJson = data.toString();
+    },
+    stderr: () => {
+        console.log('npmAudit::stderr:: ');
+    },
+    errline: () => {
+        console.log('npmAudit::errline:: ');
+    }
+};
+
+let runNpmAudit = async () => {
+    try {
+        await exec.exec('npm audit --json', [], npmAuditOptions);
+    } catch (error) {
+        console.log('npm Audit run error::', error);
+    }
+};
+
+
 let exitProcess = () => {
     core.setFailed('linting failed');
 };
 
-module.exports = { runESlint, runEmberTest, exitProcess, getEmberTestReportXmlString };
+module.exports = { runESlint, runEmberTest, exitProcess, getEmberTestReportXmlString, runNpmAudit, getNpmAuditJson };

@@ -10,6 +10,8 @@ async function runScript() {
 
     await CommandExecutor.runESlint(filenames);
     await CommandExecutor.runEmberTest();
+    await CommandExecutor.runNpmAudit();
+
     await EslintReportProcessor.createOrUpdateEslintComment(changedFiles);
 
     let { body: existingMarkdownComment = '', id: comment_id } = await GithubApiService.getCommonGroupedComment(),

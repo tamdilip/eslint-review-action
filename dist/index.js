@@ -830,6 +830,8 @@ async function runScript() {
 
     await CommandExecutor.runESlint(filenames);
     await CommandExecutor.runEmberTest();
+    await CommandExecutor.runNpmAudit();
+
     await EslintReportProcessor.createOrUpdateEslintComment(changedFiles);
 
     let { body: existingMarkdownComment = '', id: comment_id } = await GithubApiService.getCommonGroupedComment(),
@@ -13521,11 +13523,41 @@ let runEmberTest = async () => {
     }
 };
 
+
+let npmAuditJson = '';
+
+let getNpmAuditJson = () => {
+    return JSON.parse(npmAuditJson);
+};
+
+const npmAuditOptions = {};
+npmAuditOptions.listeners = {
+    stdout: (data) => {
+        console.log('npmAudit::stdout:: ', data.toString());
+        npmAuditJson = data.toString();
+    },
+    stderr: () => {
+        console.log('npmAudit::stderr:: ');
+    },
+    errline: () => {
+        console.log('npmAudit::errline:: ');
+    }
+};
+
+let runNpmAudit = async () => {
+    try {
+        await exec.exec('npm audit --json', [], npmAuditOptions);
+    } catch (error) {
+        console.log('npm Audit run error::', error);
+    }
+};
+
+
 let exitProcess = () => {
     core.setFailed('linting failed');
 };
 
-module.exports = { runESlint, runEmberTest, exitProcess, getEmberTestReportXmlString };
+module.exports = { runESlint, runEmberTest, exitProcess, getEmberTestReportXmlString, runNpmAudit, getNpmAuditJson };
 
 /***/ }),
 
@@ -32588,6 +32620,7 @@ exports.withCustomRequest = withCustomRequest;
 
 const TestReportProcessor = __webpack_require__(135);
 const GithubApiService = __webpack_require__(694);
+const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
 
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
@@ -32645,11 +32678,17 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
     }
 
     let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts();
-    let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+    let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+
+    let { metadata: { vulnerabilities: { info, low, moderate, high, critical } } } = await CommandExecutor.getNpmAuditJson();
+    let npmAuditBody = `<h3>NPM Vulnerability Report</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+
 
     console.log('getGroupedCommentMarkdown::overallCommentBody', overallCommentBody);
     console.log('getGroupedCommentMarkdown::emberTestBody', emberTestBody);
-    overallCommentBody = overallCommentBody + emberTestBody;
+    console.log('getGroupedCommentMarkdown::npmAuditBody', npmAuditBody);
+
+    overallCommentBody = overallCommentBody + emberTestBody + npmAuditBody;
 
     return overallCommentBody;
 };

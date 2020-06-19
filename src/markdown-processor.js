@@ -1,6 +1,7 @@
 
 const TestReportProcessor = require('./test-report-processor');
 const GithubApiService = require('./github-api-service');
+const CommandExecutor = require('./command-executor');
 const Config = require('./config');
 
 const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
@@ -58,11 +59,17 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
     }
 
     let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts();
-    let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>Tests</th><th>Pass</th><th>Skip</th><th>Fail</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+    let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+
+    let { metadata: { vulnerabilities: { info, low, moderate, high, critical } } } = await CommandExecutor.getNpmAuditJson();
+    let npmAuditBody = `<h3>NPM Vulnerability Report</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+
 
     console.log('getGroupedCommentMarkdown::overallCommentBody', overallCommentBody);
     console.log('getGroupedCommentMarkdown::emberTestBody', emberTestBody);
-    overallCommentBody = overallCommentBody + emberTestBody;
+    console.log('getGroupedCommentMarkdown::npmAuditBody', npmAuditBody);
+
+    overallCommentBody = overallCommentBody + emberTestBody + npmAuditBody;
 
     return overallCommentBody;
 };
