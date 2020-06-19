@@ -1,5 +1,7 @@
 const CommandExecutor = require('./command-executor');
 const xml2js = require('xml2js');
+const path = require('path');
+const fs = require('fs');
 
 let getTestCounts = async () => {
     const xmlReport = CommandExecutor.getEmberTestReportXmlString();
@@ -11,7 +13,16 @@ let getTestCounts = async () => {
     };
     testCount.PASS = testCount.TEST - testCount.FAIL;
     console.log(testCount);
+    getCoverageReport();
     return testCount;
+};
+
+
+let getCoverageReport = () => {
+    const reportPath = path.resolve('coverage/coverage-summary.json');
+    const reportFile = fs.readFileSync(reportPath, 'utf-8')
+    const reportContents = JSON.parse(reportFile);
+    console.log('getCoverageReport', reportContents);
 };
 
 module.exports = { getTestCounts };

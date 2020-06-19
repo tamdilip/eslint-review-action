@@ -1811,6 +1811,8 @@ module.exports = require("child_process");
 
 const CommandExecutor = __webpack_require__(681);
 const xml2js = __webpack_require__(992);
+const path = __webpack_require__(622);
+const fs = __webpack_require__(747);
 
 let getTestCounts = async () => {
     const xmlReport = CommandExecutor.getEmberTestReportXmlString();
@@ -1822,7 +1824,16 @@ let getTestCounts = async () => {
     };
     testCount.PASS = testCount.TEST - testCount.FAIL;
     console.log(testCount);
+    getCoverageReport();
     return testCount;
+};
+
+
+let getCoverageReport = () => {
+    const reportPath = path.resolve('coverage/coverage-summary.json');
+    const reportFile = fs.readFileSync(reportPath, 'utf-8')
+    const reportContents = JSON.parse(reportFile);
+    console.log('getCoverageReport', reportContents);
 };
 
 module.exports = { getTestCounts };
@@ -13037,7 +13048,7 @@ module.exports = {
     PASSED_EMOJI: '✔️',
     FAILED_EMOJI: '⛔',
     TESTCASE_REPORT_HEADER: '⚠️TEST CASE REPORT⚠️',
-    VULNERABILITY_REPORT_HEADER: '⚠️DEPENDENCY VULNERABILITY REPORT⚠️'
+    VULNERABILITY_REPORT_HEADER: '⚠️VULNERABILITY REPORT⚠️'
 }
 
 
@@ -13518,8 +13529,7 @@ emberTestOptions.listeners = {
 
 let runEmberTest = async () => {
     try {
-        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], emberTestOptions);
-        await exec.exec('ls');
+        await exec.exec('npx COVERAGE=true ember test -r xunit --silent > test_report.xml', [], emberTestOptions);
     } catch (error) {
         console.log('Ember Test run error::', error);
     }
