@@ -25,6 +25,7 @@ let runESlint = async (filenames) => {
 let emberTestReportXmlString = '';
 
 let getEmberTestReportXmlString = () => {
+    console.log('emberTestReportXmlString', emberTestReportXmlString);
     return emberTestReportXmlString;
 };
 
@@ -55,6 +56,7 @@ let runEmberTest = async () => {
 let npmAuditJson = '';
 
 let getNpmAuditJson = () => {
+    console.log('npmAuditJson', npmAuditJson);
     return JSON.parse(npmAuditJson);
 };
 
