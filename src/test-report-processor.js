@@ -13,16 +13,15 @@ let getTestCounts = async () => {
     };
     testCount.PASS = testCount.TEST - testCount.FAIL;
     console.log(testCount);
-    getCoverageReport();
     return testCount;
 };
 
 
-let getCoverageReport = () => {
+let getCoveragePercentage = () => {
     const reportPath = path.resolve('coverage/coverage-summary.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
     const reportContents = JSON.parse(reportFile);
-    console.log('getCoverageReport', reportContents);
+    return reportContents.total.lines.pct;
 };
 
-module.exports = { getTestCounts };
+module.exports = { getTestCounts, getCoveragePercentage };

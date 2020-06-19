@@ -1824,19 +1824,18 @@ let getTestCounts = async () => {
     };
     testCount.PASS = testCount.TEST - testCount.FAIL;
     console.log(testCount);
-    getCoverageReport();
     return testCount;
 };
 
 
-let getCoverageReport = () => {
+let getCoveragePercentage = () => {
     const reportPath = path.resolve('coverage/coverage-summary.json');
     const reportFile = fs.readFileSync(reportPath, 'utf-8')
     const reportContents = JSON.parse(reportFile);
-    console.log('getCoverageReport', reportContents);
+    return reportContents.total.lines.pct;
 };
 
-module.exports = { getTestCounts };
+module.exports = { getTestCounts, getCoveragePercentage };
 
 
 /***/ }),
@@ -32691,8 +32690,9 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
         }, commentsCountLabel);
     }
 
-    let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts();
-    let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+    let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts(),
+        COVERAGE = await TestReportProcessor.getCoveragePercentage();
+    let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th><th>COVERAGE</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td><td>${COVERAGE}%</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
     let { metadata: { vulnerabilities: { info, low, moderate, high, critical } } } = await CommandExecutor.getNpmAuditJson();
     let npmAuditBody = `<h3>${Config.VULNERABILITY_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
