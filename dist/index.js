@@ -13046,8 +13046,8 @@ module.exports = {
     REPO_TOKEN: core.getInput('repo-token'),
     PASSED_EMOJI: '✔️',
     FAILED_EMOJI: '⛔',
-    TESTCASE_REPORT_HEADER: '⚠️TEST CASE REPORT⚠️',
-    VULNERABILITY_REPORT_HEADER: '⚠️VULNERABILITY REPORT⚠️'
+    TESTCASE_REPORT_HEADER: 'TEST CASE REPORT',
+    VULNERABILITY_REPORT_HEADER: 'VULNERABILITY REPORT'
 }
 
 
@@ -32636,12 +32636,12 @@ const GithubApiService = __webpack_require__(694);
 const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
 
-const { TESTCASE_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
+const { TESTCASE_REPORT_HEADER, VULNERABILITY_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
 const { owner, repo } = GithubApiService.getMetaInfo();
 
 let getExistingCommentsList = (existingMarkdownComment) => {
     console.log('existingMarkdownComment', existingMarkdownComment);
-    let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TESTCASE_REPORT_HEADER}</h3>`);
+    let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>🩺 <ins>${TESTCASE_REPORT_HEADER}</ins></h3>`);
     testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
     let existingMarkdownCommentsList = [];
@@ -32681,7 +32681,7 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
 
     let overallCommentBody = '';
     if (!!markdownComments.length || !!fixedIssues.length) {
-        let commentsCountLabel = `<h2 align=\"center\">⚠️ ${fixedIssues.length} :: ISSUES FIXED | ${pendingIssues.length} :: ISSUES TO BE RESOLVED ⚠️</h2>\r\n\r\n`
+        let commentsCountLabel = `<h2>🛠 <ins>ESLINT ISSUES</ins> :: ${fixedIssues.length} - Fixed 📍 ${pendingIssues.length} - Pending</h2>\r\n\r\n`
         overallCommentBody = markdownComments.reduce((acc, val) => {
             const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
             acc = acc + `* ${link}\r\n`;
@@ -32692,10 +32692,10 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
 
     let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts(),
         COVERAGE = await TestReportProcessor.getCoveragePercentage();
-    let emberTestBody = `<h3>${Config.TESTCASE_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th><th>COVERAGE</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td><td>${COVERAGE}%</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+    let emberTestBody = `<h3>🩺 <ins>${TESTCASE_REPORT_HEADER}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th><th>COVERAGE</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td><td>${COVERAGE} %</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
     let { metadata: { vulnerabilities: { info, low, moderate, high, critical } } } = await CommandExecutor.getNpmAuditJson();
-    let npmAuditBody = `<h3>${Config.VULNERABILITY_REPORT_HEADER}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+    let npmAuditBody = `<h3>👽 <ins>${VULNERABILITY_REPORT_HEADER}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
 
 
     console.log('getGroupedCommentMarkdown::overallCommentBody', overallCommentBody);
