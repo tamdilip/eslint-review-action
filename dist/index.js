@@ -14246,6 +14246,9 @@ const github = __webpack_require__(469);
 const Config = __webpack_require__(659);
 const fs = __webpack_require__(747);
 
+console.log('github.token', github.token);
+console.log('github.context.token', github.context.token);
+
 const { context } = github,
     octokit = new github.GitHub(Config.REPO_TOKEN),
     { repo: { owner, repo }, issue: { number: issue_number }, sha } = context,

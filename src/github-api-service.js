@@ -2,6 +2,9 @@ const github = require('@actions/github');
 const Config = require('./config');
 const fs = require('fs');
 
+console.log('github.token', github.token);
+console.log('github.context.token', github.context.token);
+
 const { context } = github,
     octokit = new github.GitHub(Config.REPO_TOKEN),
     { repo: { owner, repo }, issue: { number: issue_number }, sha } = context,
