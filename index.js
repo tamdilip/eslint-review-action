@@ -1,16 +1,17 @@
-const GithubApiService = require('./src/github-api-service');
-const MarkdownProcessor = require('./src/markdown-processor');
-const CommandExecutor = require('./src/command-executor');
 const EslintReportProcessor = require('./src/eslint-report-processor');
+const MarkdownProcessor = require('./src/markdown-processor');
+const GithubApiService = require('./src/github-api-service');
+const CommandExecutor = require('./src/command-executor');
+const Config = require('./src/config');
 
 async function runScript() {
 
     const changedFiles = await GithubApiService.getFilesChanged();
     const filenames = changedFiles.map(f => f.filename);
 
-    await CommandExecutor.runESlint(filenames);
-    await CommandExecutor.runEmberTest();
-    await CommandExecutor.runNpmAudit();
+    !Config.DISABLE_ESLINT && await CommandExecutor.runESlint(filenames);
+    !Config.DISABLE_TEST && await CommandExecutor.runEmberTest();
+    !Config.DISABLE_AUDIT && await CommandExecutor.runNpmAudit();
 
     await EslintReportProcessor.createOrUpdateEslintComment(changedFiles);
 
@@ -22,7 +23,6 @@ async function runScript() {
 
     const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
-    console.log('updatedCommonCommentsList', updatedCommonCommentsList);
     if (existingMarkdownComment)
         GithubApiService.updateCommonComment({ comment_id, body });
     else

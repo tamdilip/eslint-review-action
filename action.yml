@@ -1,9 +1,42 @@
-name: 'eslint-pull-request'
-description: 'eslint specific file changes in a pull-request and add review comments'
+name: 'eslint-review-action'
+description: 'eslint specific file changes in a pull-request and add review comments, also with test coverage and npm vulnerabilities'
 inputs:
   repo-token:
     description: 'Token used to interact with the Github API.'
     required: true
+  disable-eslint:
+    description: 'Set true to stop linting. DEFAULT: false'
+    required: false
+  disable-ember-test:
+    description: 'Set true to stop ember testing. DEFAULT: false'
+    required: false
+  disable-npm-audit:
+    description: 'Set true to stop npm auditing. DEFAULT: false'
+    required: false
+  disable-test-coverage:
+    description: 'Set true to stop ember coverage execution, when ember test is enabled. DEFAULT: false'
+    required: false
+  pass-emoji:
+    description: 'Emoji to indicate fixed eslint issue. DEFAULT: ✔️'
+    required: false
+  fail-emoji:
+    description: 'Emoji to indicate failed eslint issue. DEFAULT: ⛔'
+    required: false
+  eslint-passed-label:
+    description: 'Label for fixed eslint issues. DEFAULT: Fixed'
+    required: false
+  eslint-failed-label:
+    description: 'Label for fixed eslint issues. DEFAULT: Pending'
+    required: false
+  eslint-report-header:
+    description: 'Header text for Eslint issues. DEFAULT: ESLINT ISSUES'
+    required: false
+  test-report-header:
+    description: 'Header text for Test case report. DEFAULT: TEST CASE REPORT'
+    required: false
+  vulnerability-report-header:
+    description: 'Header text for node dependencies vulnerability report. DEFAULT: VULNERABILITY REPORT'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'

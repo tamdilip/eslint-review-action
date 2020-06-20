@@ -1,6 +1,7 @@
 const github = require('@actions/github');
-const Config = require('./config');
 const fs = require('fs');
+const Config = require('./config');
+
 
 const { context } = github,
     octokit = new github.GitHub(Config.REPO_TOKEN),
@@ -19,7 +20,6 @@ let getMetaInfo = () => {
 
 let failedComments = [];
 let getFailedComments = () => {
-    console.log('failedComments', failedComments);
     return failedComments;
 };
 
@@ -40,7 +40,7 @@ let getCommonGroupedComment = async () => {
         repo,
         issue_number
     }) || {};
-    console.log('commonGroupedComment', commonGroupedComment);
+
     return commonGroupedComment;
 };
 
@@ -50,6 +50,7 @@ let getFilesChanged = async () => {
         repo,
         pull_number
     }) || {};
+
     return changedFiles;
 };
 
@@ -59,6 +60,7 @@ let getCommentsInPR = async () => {
         repo,
         pull_number,
     }) || {};
+
     return commentsInPR;
 };
 
@@ -96,4 +98,14 @@ let createCommonComment = (body) => {
     });
 };
 
-module.exports = { getFailedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment, getMetaInfo };
+module.exports = {
+    commentEslistError,
+    createCommonComment,
+    getCommentLineURL,
+    getCommentsInPR,
+    getCommonGroupedComment,
+    getFailedComments,
+    getFilesChanged,
+    getMetaInfo,
+    updateCommonComment
+};

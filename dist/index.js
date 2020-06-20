@@ -818,19 +818,20 @@ module.exports = require("os");
 /***/ 104:
 /***/ (function(__unusedmodule, __unusedexports, __webpack_require__) {
 
-const GithubApiService = __webpack_require__(694);
-const MarkdownProcessor = __webpack_require__(909);
-const CommandExecutor = __webpack_require__(681);
 const EslintReportProcessor = __webpack_require__(641);
+const MarkdownProcessor = __webpack_require__(909);
+const GithubApiService = __webpack_require__(694);
+const CommandExecutor = __webpack_require__(681);
+const Config = __webpack_require__(659);
 
 async function runScript() {
 
     const changedFiles = await GithubApiService.getFilesChanged();
     const filenames = changedFiles.map(f => f.filename);
 
-    await CommandExecutor.runESlint(filenames);
-    await CommandExecutor.runEmberTest();
-    await CommandExecutor.runNpmAudit();
+    !Config.DISABLE_ESLINT && await CommandExecutor.runESlint(filenames);
+    !Config.DISABLE_TEST && await CommandExecutor.runEmberTest();
+    !Config.DISABLE_AUDIT && await CommandExecutor.runNpmAudit();
 
     await EslintReportProcessor.createOrUpdateEslintComment(changedFiles);
 
@@ -842,7 +843,6 @@ async function runScript() {
 
     const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
-    console.log('updatedCommonCommentsList', updatedCommonCommentsList);
     if (existingMarkdownComment)
         GithubApiService.updateCommonComment({ comment_id, body });
     else
@@ -1809,33 +1809,50 @@ module.exports = require("child_process");
 /***/ 135:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-const CommandExecutor = __webpack_require__(681);
-const xml2js = __webpack_require__(992);
-const path = __webpack_require__(622);
 const fs = __webpack_require__(747);
+const path = __webpack_require__(622);
+const xml2js = __webpack_require__(992);
+const CommandExecutor = __webpack_require__(681);
+const Config = __webpack_require__(659);
+
 
 let getTestCounts = async () => {
-    const xmlReport = CommandExecutor.getEmberTestReportXmlString();
-    const jsonReport = await xml2js.parseStringPromise(xmlReport, { mergeAttrs: true, strict: false, explicitArray: false });
-    let testCount = {
-        TEST: parseInt(jsonReport.TESTSUITE.TESTS),
-        SKIP: parseInt(jsonReport.TESTSUITE.SKIPPED),
-        FAIL: parseInt(jsonReport.TESTSUITE.FAILURES)
-    };
-    testCount.PASS = testCount.TEST - testCount.FAIL;
-    console.log(testCount);
+    let testCount;
+    try {
+        const xmlReport = CommandExecutor.getEmberTestReportXmlString(),
+            jsonReport = await xml2js.parseStringPromise(xmlReport, { mergeAttrs: true, strict: false, explicitArray: false });
+        testCount = {
+            TEST: parseInt(jsonReport.TESTSUITE.TESTS),
+            SKIP: parseInt(jsonReport.TESTSUITE.SKIPPED),
+            FAIL: parseInt(jsonReport.TESTSUITE.FAILURES)
+        };
+        testCount.PASS = testCount.TEST - testCount.FAIL;
+    } catch (error) {
+        console.log('test-report-processor::getTestCounts', error);
+    }
+
     return testCount;
 };
 
 
 let getCoveragePercentage = () => {
-    const reportPath = path.resolve('coverage/coverage-summary.json');
-    const reportFile = fs.readFileSync(reportPath, 'utf-8')
-    const reportContents = JSON.parse(reportFile);
-    return reportContents.total.lines.pct;
+    let coveragePercentage = '';
+    try {
+        const reportPath = path.resolve(Config.COVERAGE_REPORT_PATH),
+            reportFile = fs.readFileSync(reportPath, 'utf-8'),
+            reportContents = JSON.parse(reportFile);
+        coveragePercentage = reportContents.total.lines.pct;
+    } catch (error) {
+        console.log('test-report-processor::getCoveragePercentage', error);
+    }
+
+    return coveragePercentage;
 };
 
-module.exports = { getTestCounts, getCoveragePercentage };
+module.exports = {
+    getCoveragePercentage,
+    getTestCounts
+};
 
 
 /***/ }),
@@ -11293,57 +11310,68 @@ module.exports = require("net");
 /***/ 641:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-const GithubApiService = __webpack_require__(694);
+const fs = __webpack_require__(747);
 const path = __webpack_require__(622);
 const url = __webpack_require__(835);
-const fs = __webpack_require__(747);
+const Config = __webpack_require__(659);
+const GithubApiService = __webpack_require__(694);
+
 
 let getErrorFiles = () => {
-    const reportPath = path.resolve('eslint_report.json');
-    const reportFile = fs.readFileSync(reportPath, 'utf-8')
-    const reportContents = JSON.parse(reportFile);
-    const errorFiles = reportContents.filter(es => es.errorCount > 0);
+    let errorFiles = [];
+    try {
+        const reportPath = path.resolve(Config.ESLINT_REPORT_PATH),
+            reportFile = fs.readFileSync(reportPath, 'utf-8'),
+            reportContents = JSON.parse(reportFile);
+        errorFiles = reportContents.filter(es => es.errorCount > 0);
+    } catch (error) {
+        console.log('eslint-report-processor::getErrorFiles', error);
+    }
+
     return errorFiles;
 };
 
 let getExistingPrComments = async () => {
-    const commentsInPR = await GithubApiService.getCommentsInPR();
-    const existingPRcomments = commentsInPR.map((comment) => {
-        return {
-            path: comment.path,
-            line: comment.line,
-            message: comment.body
-        }
-    });
+    const commentsInPR = await GithubApiService.getCommentsInPR(),
+        existingPRcomments = commentsInPR.map((comment) => {
+            return {
+                path: comment.path,
+                line: comment.line,
+                message: comment.body
+            }
+        });
+
     return existingPRcomments;
 };
 
 let createOrUpdateEslintComment = async (changedFiles) => {
-    const existingPRcomments = await getExistingPrComments();
-    const errorFiles = getErrorFiles();
+    const existingPRcomments = await getExistingPrComments(),
+        errorFiles = getErrorFiles();
 
     for await (let errorFile of errorFiles) {
-        const filePath = errorFile.filePath.replace(process.cwd() + '/', '');
-        const prFilesWithError = changedFiles.find(changedFile => changedFile.filename == filePath);
-        const url_parts = url.parse(prFilesWithError.contents_url, true);
-        const commit_id = url_parts.query.ref;
+        const filePath = errorFile.filePath.replace(process.cwd() + '/', ''),
+            prFilesWithError = changedFiles.find(changedFile => changedFile.filename == filePath),
+            url_parts = url.parse(prFilesWithError.contents_url, true),
+            commit_id = url_parts.query.ref;
 
         try {
             for await (let message of errorFile.messages) {
-                let alreadExistsPRComment = existingPRcomments.filter((comment) => comment.path == filePath && comment.line == message.line && comment.message.trim() == message.message.trim());
+                const alreadExistsPRComment = existingPRcomments.find((comment) => comment.path == filePath && comment.line == message.line && comment.message.trim() == message.message.trim());
 
-                if (alreadExistsPRComment.length == 0)
+                if (!alreadExistsPRComment)
                     await GithubApiService.commentEslistError({ message, commit_id, path: filePath });
             }
         }
         catch (error) {
-            console.log('createComment error::', error);
+            console.log('eslint-report-processor::createOrUpdateEslintComment--', error);
         }
     }
-
 };
 
-module.exports = { createOrUpdateEslintComment, getErrorFiles };
+module.exports = {
+    createOrUpdateEslintComment,
+    getErrorFiles
+};
 
 
 /***/ }),
@@ -13043,13 +13071,22 @@ if (process.platform === 'linux') {
 const core = __webpack_require__(470);
 
 module.exports = {
+    COVERAGE_REPORT_PATH: 'coverage/coverage-summary.json',
+    DISABLE_AUDIT: core.getInput('disable-npm-audit') || false,
+    DISABLE_ESLINT: core.getInput('disable-eslint') || false,
+    DISABLE_TEST: core.getInput('disable-ember-test') || false,
+    DISABLE_TEST_COVERAGE: core.getInput('disable-test-coverage') || false,
+    ESLINT_FAILED_TEXT: core.getInput('eslint-failed-text') || 'Pending',
+    ESLINT_PASSED_TEXT: core.getInput('eslint-passed-text') || 'Fixed',
+    ESLINT_REPORT_HEADER: core.getInput('eslint-report-header') || 'ESLINT ISSUES',
+    ESLINT_REPORT_PATH: 'eslint_report.json',
+    FAILED_EMOJI: core.getInput('pass-emoji') || '⛔',
+    PASSED_EMOJI: core.getInput('fail-emoji') || '✔️',
     REPO_TOKEN: core.getInput('repo-token'),
-    PASSED_EMOJI: '✔️',
-    FAILED_EMOJI: '⛔',
-    TESTCASE_REPORT_HEADER: 'TEST CASE REPORT',
-    VULNERABILITY_REPORT_HEADER: 'VULNERABILITY REPORT'
+    TEST_REPORT_PATH: 'test_report.xml',
+    TESTCASE_REPORT_HEADER: core.getInput('test-report-header') || 'TEST CASE REPORT',
+    VULNERABILITY_REPORT_HEADER: core.getInput('vulnerability-report-header') || 'VULNERABILITY REPORT'
 }
-
 
 
 /***/ }),
@@ -13481,79 +13518,76 @@ module.exports = function btoa(str) {
 /***/ 681:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-const exec = __webpack_require__(986);
 const core = __webpack_require__(470);
+const exec = __webpack_require__(986);
+const Config = __webpack_require__(659);
 
 const eslintOptions = {};
 eslintOptions.listeners = {
-    stdout: () => {
-        console.log('Eslint::stdout:: ');
+    stdout: (data) => {
+        console.log('Eslint::stdout--', data.toString());
     },
-    stderr: () => {
-        console.log('Eslint::stderr:: ');
+    stderr: (data) => {
+        console.log('Eslint::stderr--', data.toString());
     },
-    errline: () => {
-        console.log('Eslint::errline:: ');
+    errline: (data) => {
+        console.log('Eslint::errline--', data.toString());
     }
 };
 
 let runESlint = async (filenames) => {
     try {
-        await exec.exec('npx eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '), [], eslintOptions);
+        await exec.exec(`npx eslint --ext .js --output-file ${Config.ESLINT_REPORT_PATH} --format json ` + filenames.join(' '), [], eslintOptions);
     } catch (error) {
-        console.log('Lint run error::', error);
+        console.log('command-executor::runESlint--', error);
     }
 };
 
 let emberTestReportXmlString = '';
-
 let getEmberTestReportXmlString = () => {
-    console.log('emberTestReportXmlString', emberTestReportXmlString);
     return emberTestReportXmlString;
 };
 
 const emberTestOptions = {};
 emberTestOptions.listeners = {
     stdout: (data) => {
-        console.log('EmberTest::stdout:: ', data.toString());
+        console.log('EmberTest::stdout--', data.toString());
         emberTestReportXmlString = data.toString();
     },
-    stderr: () => {
-        console.log('EmberTest::stderr:: ');
+    stderr: (data) => {
+        console.log('EmberTest::stderr--', data.toString());
     },
-    errline: () => {
-        console.log('EmberTest::errline:: ');
+    errline: (data) => {
+        console.log('EmberTest::errline--', data.toString());
     }
 };
 
 let runEmberTest = async () => {
     try {
-        core.exportVariable('COVERAGE', 'true');
-        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], emberTestOptions);
+        core.exportVariable('COVERAGE', !Config.DISABLE_TEST_COVERAGE);
+        await exec.exec(`npx ember test -r xunit --silent > ${Config.TEST_REPORT_PATH}`, [], emberTestOptions);
     } catch (error) {
-        console.log('Ember Test run error::', error);
+        console.log('command-executor::runEmberTest--', error);
     }
 };
 
 
 let npmAuditJson = '';
-
 let getNpmAuditJson = () => {
-    console.log('npmAuditJson', npmAuditJson);
     return JSON.parse(npmAuditJson);
 };
 
 const npmAuditOptions = {};
 npmAuditOptions.listeners = {
     stdout: (data) => {
-        console.log('npmAudit::stdout:: ', data.toString());
+        console.log('npmAudit::stdout--', data.toString());
         npmAuditJson = data.toString();
     },
-    stderr: () => {
-        console.log('npmAudit::stderr:: ');
+    stderr: (data) => {
+        console.log('npmAudit::stderr--', data.toString());
     },
-    errline: () => {
-        console.log('npmAudit::errline:: ');
+    errline: (data) => {
+        console.log('npmAudit::errline--', data.toString());
     }
 };
 
@@ -13561,16 +13595,23 @@ let runNpmAudit = async () => {
     try {
         await exec.exec('npm audit --json', [], npmAuditOptions);
     } catch (error) {
-        console.log('npm Audit run error::', error);
+        console.log('command-executor::runNpmAudit--', error);
     }
 };
 
-
 let exitProcess = () => {
-    core.setFailed('linting failed');
+    core.setFailed('Errors pending in Pull-Request');
 };
 
-module.exports = { runESlint, runEmberTest, exitProcess, getEmberTestReportXmlString, runNpmAudit, getNpmAuditJson };
+module.exports = {
+    exitProcess,
+    getEmberTestReportXmlString,
+    getNpmAuditJson,
+    runEmberTest,
+    runESlint,
+    runNpmAudit
+};
+
 
 /***/ }),
 
@@ -14243,8 +14284,9 @@ exports.Deprecation = Deprecation;
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 const github = __webpack_require__(469);
-const Config = __webpack_require__(659);
 const fs = __webpack_require__(747);
+const Config = __webpack_require__(659);
+
 
 const { context } = github,
     octokit = new github.GitHub(Config.REPO_TOKEN),
@@ -14263,7 +14305,6 @@ let getMetaInfo = () => {
 
 let failedComments = [];
 let getFailedComments = () => {
-    console.log('failedComments', failedComments);
     return failedComments;
 };
 
@@ -14284,7 +14325,7 @@ let getCommonGroupedComment = async () => {
         repo,
         issue_number
     }) || {};
-    console.log('commonGroupedComment', commonGroupedComment);
+
     return commonGroupedComment;
 };
 
@@ -14294,6 +14335,7 @@ let getFilesChanged = async () => {
         repo,
         pull_number
     }) || {};
+
     return changedFiles;
 };
 
@@ -14303,6 +14345,7 @@ let getCommentsInPR = async () => {
         repo,
         pull_number,
     }) || {};
+
     return commentsInPR;
 };
 
@@ -14340,7 +14383,17 @@ let createCommonComment = (body) => {
     });
 };
 
-module.exports = { getFailedComments, getCommonGroupedComment, getFilesChanged, getCommentsInPR, commentEslistError, getCommentLineURL, updateCommonComment, createCommonComment, getMetaInfo };
+module.exports = {
+    commentEslistError,
+    createCommonComment,
+    getCommentLineURL,
+    getCommentsInPR,
+    getCommonGroupedComment,
+    getFailedComments,
+    getFilesChanged,
+    getMetaInfo,
+    updateCommonComment
+};
 
 
 /***/ }),
@@ -32631,26 +32684,26 @@ exports.withCustomRequest = withCustomRequest;
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 
-const TestReportProcessor = __webpack_require__(135);
-const GithubApiService = __webpack_require__(694);
 const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
+const GithubApiService = __webpack_require__(694);
+const TestReportProcessor = __webpack_require__(135);
 
-const { TESTCASE_REPORT_HEADER, VULNERABILITY_REPORT_HEADER, PASSED_EMOJI, FAILED_EMOJI } = Config;
+
+const { ESLINT_REPORT_HEADER, TESTCASE_REPORT_HEADER, VULNERABILITY_REPORT_HEADER, ESLINT_PASSED_TEXT, ESLINT_FAILED_TEXT, PASSED_EMOJI, FAILED_EMOJI } = Config;
 const { owner, repo } = GithubApiService.getMetaInfo();
 
 let getExistingCommentsList = (existingMarkdownComment) => {
-    console.log('existingMarkdownComment', existingMarkdownComment);
     let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>🩺 <ins>${TESTCASE_REPORT_HEADER}</ins></h3>`);
     testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
     let existingMarkdownCommentsList = [];
     if (existingMarkdownComment) {
-        existingMarkdownCommentsList = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1).map(comment => {
+        let validMarkdownComments = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1);
 
-            let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **");
-
-            let fixed = subArr[0].includes(PASSED_EMOJI),
+        existingMarkdownCommentsList = validMarkdownComments.map(comment => {
+            let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **"),
+                fixed = subArr[0].includes(PASSED_EMOJI),
                 emoji = fixed ? PASSED_EMOJI : FAILED_EMOJI,
                 lineUrl = fixed ? subArr[0].replace(PASSED_EMOJI, "").replace(/\s+/g, ' ').trim() : subArr[0].replace(FAILED_EMOJI, "").replace(/\s+/g, ' ').trim(),
                 message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
@@ -32659,30 +32712,44 @@ let getExistingCommentsList = (existingMarkdownComment) => {
                 line = repoRemovedPath.substring(repoRemovedPath.lastIndexOf("#") + 2, repoRemovedPath.length),
                 sha = repoRemovedPath.substring(0, repoRemovedPath.indexOf("/"));
 
-            return {
-                sha,
-                emoji,
-                lineUrl,
-                path,
-                line,
-                fixed,
-                message
-            }
+            return { sha, emoji, lineUrl, path, line, fixed, message };
         });
     };
-    console.log('existingMarkdownCommentsList', existingMarkdownCommentsList);
+
     return existingMarkdownCommentsList;
 };
 
+let getEmberTestBody = async () => {
+    let testCounts = await TestReportProcessor.getTestCounts(),
+        emberTestBody = '';
+    if (testCounts) {
+        const { TEST, PASS, SKIP, FAIL } = testCounts,
+            COVERAGE = await TestReportProcessor.getCoveragePercentage() || '';
+        emberTestBody = `<h3>🩺 <ins>${TESTCASE_REPORT_HEADER}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>${COVERAGE ? '<th>COVERAGE</th>' : ''}\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>${COVERAGE ? `<td>${COVERAGE} %</td>` : ''}\r\n\t\t\t</tr>\r\n\t</table>`;
+    }
+
+    return emberTestBody;
+};
+
+let getAuditBody = async () => {
+    let auditJSON = await CommandExecutor.getNpmAuditJson(),
+        npmAuditBody = '';
+    if (auditJSON) {
+        let { metadata: { vulnerabilities: { info, low, moderate, high, critical } } } = auditJSON;
+        npmAuditBody = `<h3>👽 <ins>${VULNERABILITY_REPORT_HEADER}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+    }
+
+    return npmAuditBody;
+};
+
 let getGroupedCommentMarkdown = async (markdownComments) => {
-    console.log('getGroupedCommentMarkdown::markdownComments', markdownComments);
     const pendingIssues = markdownComments.filter(comment => !comment.fixed);
     const fixedIssues = markdownComments.filter(comment => comment.fixed);
 
-    let overallCommentBody = '';
+    let eslintIssuesBody = '';
     if (!!markdownComments.length || !!fixedIssues.length) {
-        let commentsCountLabel = `<h2>🛠 <ins>ESLINT ISSUES</ins> :: ${fixedIssues.length} - Fixed 📍 ${pendingIssues.length} - Pending</h2>\r\n\r\n`
-        overallCommentBody = markdownComments.reduce((acc, val) => {
+        let commentsCountLabel = `<h2>🛠 <ins>${ESLINT_REPORT_HEADER}</ins> :: ${fixedIssues.length} - ${ESLINT_PASSED_TEXT} 📍 ${pendingIssues.length} - ${ESLINT_FAILED_TEXT}</h2>\r\n\r\n`
+        eslintIssuesBody = markdownComments.reduce((acc, val) => {
             const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
             acc = acc + `* ${link}\r\n`;
             acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
@@ -32690,26 +32757,12 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
         }, commentsCountLabel);
     }
 
-    let { TEST, PASS, SKIP, FAIL } = await TestReportProcessor.getTestCounts(),
-        COVERAGE = await TestReportProcessor.getCoveragePercentage();
-    let emberTestBody = `<h3>🩺 <ins>${TESTCASE_REPORT_HEADER}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th><th>COVERAGE</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td><td>${COVERAGE} %</td>\r\n\t\t\t</tr>\r\n\t</table>`;
-
-    let { metadata: { vulnerabilities: { info, low, moderate, high, critical } } } = await CommandExecutor.getNpmAuditJson();
-    let npmAuditBody = `<h3>👽 <ins>${VULNERABILITY_REPORT_HEADER}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
-
-
-    console.log('getGroupedCommentMarkdown::overallCommentBody', overallCommentBody);
-    console.log('getGroupedCommentMarkdown::emberTestBody', emberTestBody);
-    console.log('getGroupedCommentMarkdown::npmAuditBody', npmAuditBody);
-
-    overallCommentBody = overallCommentBody + emberTestBody + npmAuditBody;
+    let overallCommentBody = eslintIssuesBody + await getEmberTestBody() + await getAuditBody();
 
     return overallCommentBody;
 };
 
 let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCommentsList) => {
-    console.log('getUpdatedCommonCommentsList::existingMarkdownCommentsList', existingMarkdownCommentsList);
-    console.log('getUpdatedCommonCommentsList::newMarkdownCommentsList', newMarkdownCommentsList);
     let updatedCommonCommentsList = existingMarkdownCommentsList.map((issue) => {
         const existingComment = newMarkdownCommentsList.find((message) => message.line == issue.line && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());
 
@@ -32724,11 +32777,16 @@ let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCom
 
         return issue;
     });
-    console.log('getUpdatedCommonCommentsList::updatedCommonCommentsList', updatedCommonCommentsList);
+
     return updatedCommonCommentsList;
 };
 
-module.exports = { getExistingCommentsList, getGroupedCommentMarkdown, getUpdatedCommonCommentsList };
+module.exports = {
+    getExistingCommentsList,
+    getGroupedCommentMarkdown,
+    getUpdatedCommonCommentsList
+};
+
 
 /***/ }),
 

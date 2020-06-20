@@ -1,76 +1,73 @@
-const exec = require('@actions/exec');
 const core = require('@actions/core');
+const exec = require('@actions/exec');
+const Config = require('./config');
 
 const eslintOptions = {};
 eslintOptions.listeners = {
-    stdout: () => {
-        console.log('Eslint::stdout:: ');
+    stdout: (data) => {
+        console.log('Eslint::stdout--', data.toString());
     },
-    stderr: () => {
-        console.log('Eslint::stderr:: ');
+    stderr: (data) => {
+        console.log('Eslint::stderr--', data.toString());
     },
-    errline: () => {
-        console.log('Eslint::errline:: ');
+    errline: (data) => {
+        console.log('Eslint::errline--', data.toString());
     }
 };
 
 let runESlint = async (filenames) => {
     try {
-        await exec.exec('npx eslint --ext .js --output-file eslint_report.json --format json ' + filenames.join(' '), [], eslintOptions);
+        await exec.exec(`npx eslint --ext .js --output-file ${Config.ESLINT_REPORT_PATH} --format json ` + filenames.join(' '), [], eslintOptions);
     } catch (error) {
-        console.log('Lint run error::', error);
+        console.log('command-executor::runESlint--', error);
     }
 };
 
 let emberTestReportXmlString = '';
-
 let getEmberTestReportXmlString = () => {
-    console.log('emberTestReportXmlString', emberTestReportXmlString);
     return emberTestReportXmlString;
 };
 
 const emberTestOptions = {};
 emberTestOptions.listeners = {
     stdout: (data) => {
-        console.log('EmberTest::stdout:: ', data.toString());
+        console.log('EmberTest::stdout--', data.toString());
         emberTestReportXmlString = data.toString();
     },
-    stderr: () => {
-        console.log('EmberTest::stderr:: ');
+    stderr: (data) => {
+        console.log('EmberTest::stderr--', data.toString());
     },
-    errline: () => {
-        console.log('EmberTest::errline:: ');
+    errline: (data) => {
+        console.log('EmberTest::errline--', data.toString());
     }
 };
 
 let runEmberTest = async () => {
     try {
-        core.exportVariable('COVERAGE', 'true');
-        await exec.exec('npx ember test -r xunit --silent > test_report.xml', [], emberTestOptions);
+        core.exportVariable('COVERAGE', !Config.DISABLE_TEST_COVERAGE);
+        await exec.exec(`npx ember test -r xunit --silent > ${Config.TEST_REPORT_PATH}`, [], emberTestOptions);
     } catch (error) {
-        console.log('Ember Test run error::', error);
+        console.log('command-executor::runEmberTest--', error);
     }
 };
 
 
 let npmAuditJson = '';
-
 let getNpmAuditJson = () => {
-    console.log('npmAuditJson', npmAuditJson);
     return JSON.parse(npmAuditJson);
 };
 
 const npmAuditOptions = {};
 npmAuditOptions.listeners = {
     stdout: (data) => {
-        console.log('npmAudit::stdout:: ', data.toString());
+        console.log('npmAudit::stdout--', data.toString());
         npmAuditJson = data.toString();
     },
-    stderr: () => {
-        console.log('npmAudit::stderr:: ');
+    stderr: (data) => {
+        console.log('npmAudit::stderr--', data.toString());
     },
-    errline: () => {
-        console.log('npmAudit::errline:: ');
+    errline: (data) => {
+        console.log('npmAudit::errline--', data.toString());
     }
 };
 
@@ -78,13 +75,19 @@ let runNpmAudit = async () => {
     try {
         await exec.exec('npm audit --json', [], npmAuditOptions);
     } catch (error) {
-        console.log('npm Audit run error::', error);
+        console.log('command-executor::runNpmAudit--', error);
     }
 };
 
-
 let exitProcess = () => {
-    core.setFailed('linting failed');
+    core.setFailed('Errors pending in Pull-Request');
 };
 
-module.exports = { runESlint, runEmberTest, exitProcess, getEmberTestReportXmlString, runNpmAudit, getNpmAuditJson };
+module.exports = {
+    exitProcess,
+    getEmberTestReportXmlString,
+    getNpmAuditJson,
+    runEmberTest,
+    runESlint,
+    runNpmAudit
+};
