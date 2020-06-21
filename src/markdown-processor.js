@@ -25,7 +25,7 @@ const {
     } = GithubApiService.getMetaInfo();
 
 let getExistingCommentsList = (existingMarkdownComment) => {
-    let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>🩺 <ins>${TESTCASE_REPORT_HEADER}</ins></h3>`);
+    let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins>`);
     testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
 
     let existingMarkdownCommentsList = [];
