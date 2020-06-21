@@ -13072,20 +13072,25 @@ const core = __webpack_require__(470);
 
 module.exports = {
     COVERAGE_REPORT_PATH: 'coverage/coverage-summary.json',
-    DISABLE_AUDIT: core.getInput('disable-npm-audit') || false,
-    DISABLE_ESLINT: core.getInput('disable-eslint') || false,
-    DISABLE_TEST: core.getInput('disable-ember-test') || false,
-    DISABLE_TEST_COVERAGE: core.getInput('disable-test-coverage') || false,
-    ESLINT_FAILED_TEXT: core.getInput('eslint-failed-text') || 'Pending',
-    ESLINT_PASSED_TEXT: core.getInput('eslint-passed-text') || 'Fixed',
-    ESLINT_REPORT_HEADER: core.getInput('eslint-report-header') || 'ESLINT ISSUES',
+    DISABLE_AUDIT: core.getInput('disable-npm-audit').toLowerCase() === 'true',
+    DISABLE_ESLINT: core.getInput('disable-eslint').toLowerCase() === 'true',
+    DISABLE_TEST: core.getInput('disable-ember-test').toLowerCase() === 'true',
+    DISABLE_TEST_COVERAGE: core.getInput('disable-test-coverage').toLowerCase() === 'true',
+    ESLINT_EMOJI: core.getInput('eslint-emoji'),
+    ESLINT_REPORT_HEADER: core.getInput('eslint-report-header'),
     ESLINT_REPORT_PATH: 'eslint_report.json',
-    FAILED_EMOJI: core.getInput('pass-emoji') || '⛔',
-    PASSED_EMOJI: core.getInput('fail-emoji') || '✔️',
+    FAIL_ON_TEST: core.getInput('fail-on-test').toLowerCase() === 'true',
+    FAILED_EMOJI: core.getInput('pass-emoji'),
+    INFO_EMOJI: core.getInput('info-emoji'),
+    PASSED_EMOJI: core.getInput('fail-emoji'),
     REPO_TOKEN: core.getInput('repo-token'),
+    TEST_COVERAGE_THRESHOLD: core.getInput('test-coverage-threshold'),
+    TEST_EMOJI: core.getInput('test-emoji'),
     TEST_REPORT_PATH: 'test_report.xml',
-    TESTCASE_REPORT_HEADER: core.getInput('test-report-header') || 'TEST CASE REPORT',
-    VULNERABILITY_REPORT_HEADER: core.getInput('vulnerability-report-header') || 'VULNERABILITY REPORT'
+    TESTCASE_REPORT_HEADER: core.getInput('test-report-header'),
+    VULNERABILITY_EMOJI: core.getInput('vulnerability-emoji'),
+    VULNERABILITY_FAIL_ON: core.getInput('vulnerability-fail-on').toLowerCase(),
+    VULNERABILITY_REPORT_HEADER: core.getInput('vulnerability-report-header')
 }
 
 
@@ -32686,12 +32691,28 @@ exports.withCustomRequest = withCustomRequest;
 
 const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
+const EslintReportProcessor = __webpack_require__(641);
 const GithubApiService = __webpack_require__(694);
 const TestReportProcessor = __webpack_require__(135);
 
-
-const { ESLINT_REPORT_HEADER, TESTCASE_REPORT_HEADER, VULNERABILITY_REPORT_HEADER, ESLINT_PASSED_TEXT, ESLINT_FAILED_TEXT, PASSED_EMOJI, FAILED_EMOJI } = Config;
-const { owner, repo } = GithubApiService.getMetaInfo();
+const {
+    ESLINT_EMOJI,
+    ESLINT_REPORT_HEADER,
+    FAIL_ON_TEST,
+    FAILED_EMOJI,
+    INFO_EMOJI,
+    PASSED_EMOJI,
+    TEST_COVERAGE_THRESHOLD,
+    TEST_EMOJI,
+    TESTCASE_REPORT_HEADER,
+    VULNERABILITY_EMOJI,
+    VULNERABILITY_FAIL_ON,
+    VULNERABILITY_REPORT_HEADER
+} = Config,
+    {
+        owner,
+        repo
+    } = GithubApiService.getMetaInfo();
 
 let getExistingCommentsList = (existingMarkdownComment) => {
     let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>🩺 <ins>${TESTCASE_REPORT_HEADER}</ins></h3>`);
@@ -32722,10 +32743,17 @@ let getExistingCommentsList = (existingMarkdownComment) => {
 let getEmberTestBody = async () => {
     let testCounts = await TestReportProcessor.getTestCounts(),
         emberTestBody = '';
+
     if (testCounts) {
         const { TEST, PASS, SKIP, FAIL } = testCounts,
-            COVERAGE = await TestReportProcessor.getCoveragePercentage() || '';
-        emberTestBody = `<h3>🩺 <ins>${TESTCASE_REPORT_HEADER}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>${COVERAGE ? '<th>COVERAGE</th>' : ''}\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>${COVERAGE ? `<td>${COVERAGE} %</td>` : ''}\r\n\t\t\t</tr>\r\n\t</table>`;
+            COVERAGE = TestReportProcessor.getCoveragePercentage() || '';
+        let status = `${PASSED_EMOJI} Threshold met`;
+        if (FAIL_ON_TEST && !!FAIL)
+            status = `${FAILED_EMOJI} Testcases failing`;
+        if (COVERAGE < TEST_COVERAGE_THRESHOLD)
+            status = `${FAILED_EMOJI} Minimum test coverage should be ${TEST_COVERAGE_THRESHOLD} %`;
+
+        emberTestBody = `<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>${COVERAGE ? '<th>COVERAGE</th>' : ''}\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>${COVERAGE ? `<td>${COVERAGE} %</td>` : ''}\r\n\t\t\t</tr>\r\n\t</table>`;
     }
 
     return emberTestBody;
@@ -32734,32 +32762,35 @@ let getEmberTestBody = async () => {
 let getAuditBody = async () => {
     let auditJSON = await CommandExecutor.getNpmAuditJson(),
         npmAuditBody = '';
+
     if (auditJSON) {
-        let { metadata: { vulnerabilities: { info, low, moderate, high, critical } } } = auditJSON;
-        npmAuditBody = `<h3>👽 <ins>${VULNERABILITY_REPORT_HEADER}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+        let { metadata: { vulnerabilities } } = auditJSON,
+            { info, low, moderate, high, critical } = vulnerabilities,
+            status = `${PASSED_EMOJI} Threshold met`;
+        if (vulnerabilities[VULNERABILITY_FAIL_ON] > 0)
+            status = `${FAILED_EMOJI} ${VULNERABILITY_FAIL_ON} threshold not met`;
+
+        npmAuditBody = `<h3>${VULNERABILITY_EMOJI} <ins>${VULNERABILITY_REPORT_HEADER} : ${INFO_EMOJI} :: ${status}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
     }
 
     return npmAuditBody;
 };
 
 let getGroupedCommentMarkdown = async (markdownComments) => {
-    const pendingIssues = markdownComments.filter(comment => !comment.fixed);
-    const fixedIssues = markdownComments.filter(comment => comment.fixed);
+    const { length: overallPendingIssues } = EslintReportProcessor.getErrorFiles();
+    let eslintIssuesBody = `<h2>${ESLINT_EMOJI} <ins>${ESLINT_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${overallPendingIssues == 0 ? PASSED_EMOJI : FAILED_EMOJI} ${overallPendingIssues} - Pending</h2>\r\n\r\n`;
 
-    let eslintIssuesBody = '';
-    if (!!markdownComments.length || !!fixedIssues.length) {
-        let commentsCountLabel = `<h2>🛠 <ins>${ESLINT_REPORT_HEADER}</ins> :: ${fixedIssues.length} - ${ESLINT_PASSED_TEXT} 📍 ${pendingIssues.length} - ${ESLINT_FAILED_TEXT}</h2>\r\n\r\n`
+    if (!!markdownComments.length) {
+        eslintIssuesBody = eslintIssuesBody.replace('</h2>', '<h4>(issues in other than visible changed lines)</h4><br></h2>');
         eslintIssuesBody = markdownComments.reduce((acc, val) => {
             const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
             acc = acc + `* ${link}\r\n`;
             acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
             return acc;
-        }, commentsCountLabel);
+        }, eslintIssuesBody);
     }
 
-    let overallCommentBody = eslintIssuesBody + await getEmberTestBody() + await getAuditBody();
-
-    return overallCommentBody;
+    return eslintIssuesBody + await getEmberTestBody() + await getAuditBody();
 };
 
 let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCommentsList) => {
