@@ -32770,7 +32770,7 @@ let getAuditBody = async () => {
         if (vulnerabilities[VULNERABILITY_FAIL_ON] > 0)
             status = `${FAILED_EMOJI} ${VULNERABILITY_FAIL_ON} threshold not met`;
 
-        npmAuditBody = `<h3>${VULNERABILITY_EMOJI} <ins>${VULNERABILITY_REPORT_HEADER} : ${INFO_EMOJI} :: ${status}</ins></h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
+        npmAuditBody = `<h3>${VULNERABILITY_EMOJI} <ins>${VULNERABILITY_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th>\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td>\r\n\t\t\t</tr>\r\n\t</table>`;
     }
 
     return npmAuditBody;
