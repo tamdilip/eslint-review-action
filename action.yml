@@ -1,5 +1,12 @@
 name: 'eslint-review-action'
+author: 'Dilipan Somasundaram'
 description: 'eslint specific file changes in a pull-request and add review comments, also with test coverage and npm vulnerabilities'
+branding:
+  icon: 'git-pull-request'
+  color: 'yellow'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
 inputs:
   repo-token:
     description: 'Token used to interact with the Github API.'
@@ -68,6 +75,3 @@ inputs:
     description: 'Header text for node dependencies vulnerability report.'
     required: false
     default: 'VULNERABILITY REPORT'
-runs:
-  using: 'node12'
-  main: 'dist/index.js'
