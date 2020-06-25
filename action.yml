@@ -58,7 +58,7 @@ inputs:
   test-emoji:
     description: 'Emoji for test header label.'
     required: false
-    default: '🩺'
+    default: '🔬'
   vulnerability-emoji:
     description: 'Emoji for vulnerability header label.'
     required: false
