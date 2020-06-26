@@ -14410,6 +14410,7 @@ let getCommonGroupedComment = async () => {
         issue_number
     }) || {};
 
+    console.log('commonGroupedComment', commonGroupedComment);
     return commonGroupedComment;
 };
 
@@ -14438,6 +14439,7 @@ let getCommentsInPR = async () => {
         pull_number,
     }) || {};
 
+    console.log('commentsInPR', commentsInPR);
     return commentsInPR;
 };
 
