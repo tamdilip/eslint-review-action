@@ -4,9 +4,14 @@ const url = require('url');
 const Config = require('./config');
 const GithubApiService = require('./github-api-service');
 
-
+/**
+ * Get a list of files with eslint errors
+ * extracted from the eslint json report
+ * 
+ */
 let getErrorFiles = () => {
     let errorFiles = [];
+
     try {
         const reportPath = path.resolve(Config.ESLINT_REPORT_PATH),
             reportFile = fs.readFileSync(reportPath, 'utf-8'),
@@ -19,6 +24,11 @@ let getErrorFiles = () => {
     return errorFiles;
 };
 
+/**
+ * Get a list of comments already
+ * made under the pull request
+ * 
+ */
 let getExistingPrComments = async () => {
     const commentsInPR = await GithubApiService.getCommentsInPR(),
         existingPRcomments = commentsInPR.map((comment) => {
@@ -32,6 +42,11 @@ let getExistingPrComments = async () => {
     return existingPRcomments;
 };
 
+/**
+ * Post inline comment for each errors under a changed file
+ * 
+ * @param {Array} changedFiles changed files list in pull-request with errors
+ */
 let createOrUpdateEslintComment = async (changedFiles) => {
     const existingPRcomments = await getExistingPrComments(),
         errorFiles = getErrorFiles();

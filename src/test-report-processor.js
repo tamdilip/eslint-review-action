@@ -4,7 +4,12 @@ const xml2js = require('xml2js');
 const CommandExecutor = require('./command-executor');
 const Config = require('./config');
 
-
+/**
+ * Returns test case counts extracted from the
+ * ember test xml report generated via cli command
+ * and captured in a listner as string.
+ * 
+ */
 let getTestCounts = async () => {
     let testCount;
     try {
@@ -23,7 +28,10 @@ let getTestCounts = async () => {
     return testCount;
 };
 
-
+/**
+ * Returns the test coverage percentage
+ * 
+ */
 let getCoveragePercentage = () => {
     let coveragePercentage = '';
     try {

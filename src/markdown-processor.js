@@ -24,6 +24,13 @@ const {
         repo
     } = GithubApiService.getMetaInfo();
 
+/**
+ * Extracts existing list of errors from the string body of 
+ * an issue comment having all information of eslint issues,
+ * test report, test coverage and npm audit vulnerability
+ * 
+ * @param {String} existingMarkdownComment common grouped comment markdown string
+ */
 let getExistingCommentsList = (existingMarkdownComment) => {
     let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins>`);
     testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
@@ -50,6 +57,11 @@ let getExistingCommentsList = (existingMarkdownComment) => {
     return existingMarkdownCommentsList;
 };
 
+/**
+ * Returns ember test report markdown string
+ * with test counts and coverage in table format
+ * 
+ */
 let getEmberTestBody = async () => {
     let testCounts = await TestReportProcessor.getTestCounts(),
         emberTestBody = '';
@@ -69,6 +81,11 @@ let getEmberTestBody = async () => {
     return emberTestBody;
 };
 
+/**
+ * Returns node module dependencies vulnerability
+ * count report markdown string in table format
+ * 
+ */
 let getAuditBody = async () => {
     let auditJSON = await CommandExecutor.getNpmAuditJson(),
         npmAuditBody = '';
@@ -86,6 +103,12 @@ let getAuditBody = async () => {
     return npmAuditBody;
 };
 
+/**
+ * Returns github markdown string with grouped eslint errors,
+ * test coverage and npm audit report.
+ * 
+ * @param {Array} markdownComments error comments list occured at unchanged portion of lines
+ */
 let getGroupedCommentMarkdown = async (markdownComments) => {
     const { length: overallPendingIssues } = EslintReportProcessor.getErrorFiles();
     let eslintIssuesBody = `<h2>${ESLINT_EMOJI} <ins>${ESLINT_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${overallPendingIssues == 0 ? PASSED_EMOJI : FAILED_EMOJI} ${overallPendingIssues} - Pending</h2>\r\n\r\n`;
@@ -103,6 +126,13 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
     return eslintIssuesBody + await getEmberTestBody() + await getAuditBody();
 };
 
+/**
+ * Returns updated list of grouped eslint errors comparing
+ * with previous issue comment list of errors.
+ * 
+ * @param {Array} existingMarkdownCommentsList existing eslint errors list in grouped issue comment
+ * @param {Array} newMarkdownCommentsList new eslint errors list in to update in issue comment
+ */
 let getUpdatedCommonCommentsList = (existingMarkdownCommentsList, newMarkdownCommentsList) => {
     let updatedCommonCommentsList = existingMarkdownCommentsList.map((issue) => {
         const existingComment = newMarkdownCommentsList.find((message) => message.line == issue.line && message.path.trim() == issue.path.trim() && message.message.trim() == issue.message.trim());

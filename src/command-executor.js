@@ -2,6 +2,11 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const Config = require('./config');
 
+/**
+ * Listener for eslint command execution,
+ * to capture console outputs
+ * 
+ */
 const eslintOptions = {};
 eslintOptions.listeners = {
     stdout: (data) => {
@@ -15,6 +20,13 @@ eslintOptions.listeners = {
     }
 };
 
+/**
+ * Execute eslint cli command on only 
+ * changed set of files under a pull-request
+ * 
+ * @param {Array} filenames changed files list in pull-request
+ * 
+ */
 let runESlint = async (filenames) => {
     try {
         await exec.exec(`npx eslint --ext .js --output-file ${Config.ESLINT_REPORT_PATH} --format json ` + filenames.join(' '), [], eslintOptions);
@@ -28,6 +40,11 @@ let getEmberTestReportXmlString = () => {
     return emberTestReportXmlString;
 };
 
+/**
+ * Listener for ember test command execution,
+ * to capture console outputs
+ * 
+ */
 const emberTestOptions = {};
 emberTestOptions.listeners = {
     stdout: (data) => {
@@ -42,6 +59,11 @@ emberTestOptions.listeners = {
     }
 };
 
+/**
+ * Execute ember test cli command to
+ * generate test report as xml format
+ * 
+ */
 let runEmberTest = async () => {
     try {
         core.exportVariable('COVERAGE', !Config.DISABLE_TEST_COVERAGE);
@@ -57,6 +79,11 @@ let getNpmAuditJson = () => {
     return JSON.parse(npmAuditJson);
 };
 
+/**
+ * Listener for npm audit command execution,
+ * to capture console outputs
+ * 
+ */
 const npmAuditOptions = {};
 npmAuditOptions.listeners = {
     stdout: (data) => {
@@ -71,6 +98,11 @@ npmAuditOptions.listeners = {
     }
 };
 
+/**
+ * Execute npm audit cli command
+ * to generate json report on vulnerabilities
+ * 
+ */
 let runNpmAudit = async () => {
     try {
         await exec.exec('npm audit --json', [], npmAuditOptions);
@@ -79,6 +111,11 @@ let runNpmAudit = async () => {
     }
 };
 
+/**
+ * Exits the workflow execution 
+ * to fail the pull-request status
+ * 
+ */
 let exitProcess = () => {
     core.setFailed('Errors pending in Pull-Request');
 };
