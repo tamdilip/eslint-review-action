@@ -11,6 +11,10 @@ inputs:
   repo-token:
     description: 'Token used to interact with the Github API.'
     required: true
+  bot-user-name:
+    description: 'Set username of the token provide to filter out comments'
+    required: true
+    default: 'github-actions[bot]'
   disable-eslint:
     description: 'Set true to stop linting.'
     required: false

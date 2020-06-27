@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 
 module.exports = {
+    BOT_USER_NAME: core.getInput('bot-user-name'),
     COVERAGE_REPORT_PATH: 'coverage/coverage-summary.json',
     DISABLE_AUDIT: core.getInput('disable-npm-audit').toLowerCase() === 'true',
     DISABLE_ESLINT: core.getInput('disable-eslint').toLowerCase() === 'true',

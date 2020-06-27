@@ -75,7 +75,7 @@ let getEmberTestBody = async () => {
         if (COVERAGE < TEST_COVERAGE_THRESHOLD)
             status = `${FAILED_EMOJI} Minimum test coverage should be ${TEST_COVERAGE_THRESHOLD} %`;
 
-        emberTestBody = `<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>${COVERAGE ? '<th>COVERAGE</th>' : ''}\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>${COVERAGE ? `<td>${COVERAGE} %</td>` : ''}\r\n\t\t\t</tr>\r\n\t</table>`;
+        emberTestBody = `<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3><table><tr><th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>${COVERAGE ? '<th>COVERAGE</th>' : ''}</tr><tr><td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>${COVERAGE ? `<td>${COVERAGE} %</td>` : ''}</tr></table>`;
     }
 
     return emberTestBody;

@@ -83,11 +83,12 @@ let getFilesChanged = async () => {
  * Returns a list of inline comments under a pull-request
  */
 let getCommentsInPR = async () => {
-    let { data: commentsInPR } = await octokit.pulls.listComments({
+    let { data: commentsInPR = [] } = await octokit.pulls.listComments({
         owner,
         repo,
         pull_number,
-    }) || {};
+    }) || [];
+    commentsInPR = commentsInPR.filter(comment => comment.user.login === Config.BOT_USER_NAME);
 
     console.log('commentsInPR', commentsInPR);
     return commentsInPR;

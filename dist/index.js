@@ -13094,6 +13094,7 @@ if (process.platform === 'linux') {
 const core = __webpack_require__(470);
 
 module.exports = {
+    BOT_USER_NAME: core.getInput('bot-user-name'),
     COVERAGE_REPORT_PATH: 'coverage/coverage-summary.json',
     DISABLE_AUDIT: core.getInput('disable-npm-audit').toLowerCase() === 'true',
     DISABLE_ESLINT: core.getInput('disable-eslint').toLowerCase() === 'true',
@@ -14433,11 +14434,12 @@ let getFilesChanged = async () => {
  * Returns a list of inline comments under a pull-request
  */
 let getCommentsInPR = async () => {
-    let { data: commentsInPR } = await octokit.pulls.listComments({
+    let { data: commentsInPR = [] } = await octokit.pulls.listComments({
         owner,
         repo,
         pull_number,
-    }) || {};
+    }) || [];
+    commentsInPR = commentsInPR.filter(comment => comment.user.login === Config.BOT_USER_NAME);
 
     console.log('commentsInPR', commentsInPR);
     return commentsInPR;
@@ -32877,7 +32879,7 @@ let getEmberTestBody = async () => {
         if (COVERAGE < TEST_COVERAGE_THRESHOLD)
             status = `${FAILED_EMOJI} Minimum test coverage should be ${TEST_COVERAGE_THRESHOLD} %`;
 
-        emberTestBody = `<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3>\r\n\t\t<table>\r\n\t\t\t<tr>\r\n\t\t\t\t<th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>${COVERAGE ? '<th>COVERAGE</th>' : ''}\r\n\t\t\t</tr>\r\n\t\t\t<tr>\r\n\t\t\t\t<td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>${COVERAGE ? `<td>${COVERAGE} %</td>` : ''}\r\n\t\t\t</tr>\r\n\t</table>`;
+        emberTestBody = `<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3><table><tr><th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>${COVERAGE ? '<th>COVERAGE</th>' : ''}</tr><tr><td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>${COVERAGE ? `<td>${COVERAGE} %</td>` : ''}</tr></table>`;
     }
 
     return emberTestBody;
