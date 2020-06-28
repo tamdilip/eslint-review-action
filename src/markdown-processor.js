@@ -91,7 +91,7 @@ let getEmberTestBody = async () => {
                 { header: 'SKIP', value: SKIP },
                 { header: 'FAIL', value: FAIL }
             ];
-        COVERAGE && tableItemsList.push({ header: 'COVERAGE', value: COVERAGE });
+        COVERAGE && tableItemsList.push({ header: 'COVERAGE', value: `${COVERAGE} %` });
         let tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`).join(''),
             tableRows = tableItemsList.map(item => `<td>${item.value}</td>`).join('');
 
@@ -154,7 +154,7 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
         eslintIssuesBody = eslintIssuesBody.replace('</h3><br />', `<h4>(${ESLINT_COMMON_ISSUES_DISCLAIMER})</h4></h3><br />`);
         eslintIssuesBody = markdownComments.reduce((acc, val, index) => {
             const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
-            acc = acc + `<li><a href=${link}>${link}</a>`;
+            acc = acc + `<li><a href="${link}">${link}</a>`;
             acc = acc + `<p>${val.emoji} : <strong>${val.message}</strong></p></li>${markdownComments.length - 1 != index ? `<hr />` : `</ul>`}`;
             return acc;
         }, `${eslintIssuesBody}<ul id="eslint-issues-list">`);
