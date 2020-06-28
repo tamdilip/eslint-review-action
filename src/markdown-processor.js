@@ -37,7 +37,7 @@ let getExistingCommentsList = (existingMarkdownComment) => {
     let existingMarkdownCommentsList = [];
 
     try {
-        const dom = parser.parseFromString(existingMarkdownComment);
+        const dom = HtmlParser.parseFromString(existingMarkdownComment);
         const eslintIssuesList = dom.getElementById('eslint-issues-list');
         if (eslintIssuesList) {
             const issuesList = eslintIssuesList.getElementsByTagName("li");
