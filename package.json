@@ -34,6 +34,7 @@
     "@actions/exec": "^1.0.4",
     "@actions/github": "^2.2.0",
     "@zeit/ncc": "^0.22.2",
+    "dom-parser": "^0.1.6",
     "xml2js": "^0.4.23"
   }
 }
