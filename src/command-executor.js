@@ -112,12 +112,25 @@ let runNpmAudit = async () => {
 };
 
 /**
+ * State to error out the pull-request status
+ * 
+ */
+let failAction = false;
+let getFailAction = () => {
+    return failAction;
+};
+
+let setFailAction = (state) => {
+    failAction = state;
+};
+
+/**
  * Exits the workflow execution 
  * to fail the pull-request status
  * 
  */
 let exitProcess = () => {
-    core.setFailed('Errors pending in Pull-Request');
+    getFailAction() && core.setFailed('Errors pending in Pull-Request');
 };
 
 module.exports = {
@@ -126,5 +139,7 @@ module.exports = {
     getNpmAuditJson,
     runEmberTest,
     runESlint,
-    runNpmAudit
+    runNpmAudit,
+    getFailAction,
+    setFailAction
 };

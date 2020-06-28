@@ -28,7 +28,7 @@ async function runScript() {
     else
         GithubApiService.createCommonComment(body);
 
-    (EslintReportProcessor.getErrorFiles().length > 0 || markdownComments.find(comment => !comment.fixed)) && CommandExecutor.exitProcess();
+    CommandExecutor.exitProcess();
 }
 
 runScript();

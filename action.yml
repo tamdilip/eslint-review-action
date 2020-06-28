@@ -13,8 +13,8 @@ inputs:
     required: true
   bot-user-name:
     description: 'Set username of the token provide to filter out comments'
-    required: true
-    default: 'github-actions[bot]'
+    required: false
+    default: ''
   disable-eslint:
     description: 'Set true to stop linting.'
     required: false
@@ -79,3 +79,7 @@ inputs:
     description: 'Header text for node dependencies vulnerability report.'
     required: false
     default: 'VULNERABILITY REPORT'
+  eslint-common-issues-disclaimer:
+    description: 'Disclaimer text to explain about the common grouped set of eslint issue comment.'
+    required: false
+    default: 'issues listed below are in areas other than visible changed portion of lines'

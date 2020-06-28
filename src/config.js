@@ -7,6 +7,7 @@ module.exports = {
     DISABLE_ESLINT: core.getInput('disable-eslint').toLowerCase() === 'true',
     DISABLE_TEST: core.getInput('disable-ember-test').toLowerCase() === 'true',
     DISABLE_TEST_COVERAGE: core.getInput('disable-test-coverage').toLowerCase() === 'true',
+    ESLINT_COMMON_ISSUES_DISCLAIMER: core.getInput('eslint-common-issues-disclaimer'),
     ESLINT_EMOJI: core.getInput('eslint-emoji'),
     ESLINT_REPORT_HEADER: core.getInput('eslint-report-header'),
     ESLINT_REPORT_PATH: 'eslint_report.json',

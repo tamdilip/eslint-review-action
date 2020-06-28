@@ -88,9 +88,10 @@ let getCommentsInPR = async () => {
         repo,
         pull_number,
     }) || [];
-    commentsInPR = commentsInPR.filter(comment => comment.user.login === Config.BOT_USER_NAME);
 
-    console.log('commentsInPR', commentsInPR);
+    if (Config.BOT_USER_NAME)
+        commentsInPR = commentsInPR.filter(comment => comment.user.login === Config.BOT_USER_NAME);
+
     return commentsInPR;
 };
 
