@@ -55,6 +55,7 @@ let getExistingCommentsList = (existingMarkdownComment) => {
             });
         }
     } catch (error) {
+        CommandExecutor.setFailAction(true);
         console.log('markdown-processor::getExistingCommentsList', error);
     }
 
