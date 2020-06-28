@@ -32819,9 +32819,9 @@ exports.withCustomRequest = withCustomRequest;
 /***/ 909:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-
 const CommandExecutor = __webpack_require__(681);
 const Config = __webpack_require__(659);
+const DomParser = __webpack_require__(928);
 const EslintReportProcessor = __webpack_require__(641);
 const GithubApiService = __webpack_require__(694);
 const TestReportProcessor = __webpack_require__(135);
@@ -32844,7 +32844,8 @@ const {
     {
         owner,
         repo
-    } = GithubApiService.getMetaInfo();
+    } = GithubApiService.getMetaInfo(),
+    HtmlParser = new DomParser();
 
 /**
  * Extracts existing list of errors from the string body of 
@@ -32854,27 +32855,29 @@ const {
  * @param {String} existingMarkdownComment common grouped comment markdown string
  */
 let getExistingCommentsList = (existingMarkdownComment) => {
-    let testCaseMarkdownIndex = existingMarkdownComment.indexOf(`<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins>`);
-    testCaseMarkdownIndex != -1 && (existingMarkdownComment = existingMarkdownComment.substring(0, testCaseMarkdownIndex));
-
     let existingMarkdownCommentsList = [];
-    if (existingMarkdownComment) {
-        let validMarkdownComments = existingMarkdownComment.replace(existingMarkdownComment.substring(0, existingMarkdownComment.indexOf("</h2>") + 5), "").split("* ").slice(1);
 
-        existingMarkdownCommentsList = validMarkdownComments.map(comment => {
-            let subArr = comment.replace(/\r/g, "").replace(/\n/g, "").split(": **"),
-                fixed = subArr[0].includes(PASSED_EMOJI),
-                emoji = fixed ? PASSED_EMOJI : FAILED_EMOJI,
-                lineUrl = fixed ? subArr[0].replace(PASSED_EMOJI, "").replace(/\s+/g, ' ').trim() : subArr[0].replace(FAILED_EMOJI, "").replace(/\s+/g, ' ').trim(),
-                message = subArr[1].replace("**", "").replace("---", "").replace(/\s+/g, ' ').trim(),
-                repoRemovedPath = lineUrl.replace("https://github.com/" + owner + "/" + repo + "/blob/", ""),
-                path = repoRemovedPath.substring(repoRemovedPath.indexOf("/") + 1, repoRemovedPath.indexOf("#")),
-                line = repoRemovedPath.substring(repoRemovedPath.lastIndexOf("#") + 2, repoRemovedPath.length),
-                sha = repoRemovedPath.substring(0, repoRemovedPath.indexOf("/"));
+    try {
+        const dom = parser.parseFromString(existingMarkdownComment);
+        const eslintIssuesList = dom.getElementById('eslint-issues-list');
+        if (eslintIssuesList) {
+            const issuesList = eslintIssuesList.getElementsByTagName("li");
+            existingMarkdownCommentsList = issuesList.map(element => {
+                let { 0: { textContent: lineUrl } } = element.getElementsByTagName("a"),
+                    { 0: { textContent: message } } = element.getElementsByTagName("strong"),
+                    fixed = message.includes(PASSED_EMOJI),
+                    emoji = fixed ? PASSED_EMOJI : FAILED_EMOJI,
+                    repoRemovedPath = lineUrl.replace("https://github.com/" + owner + "/" + repo + "/blob/", ""),
+                    path = repoRemovedPath.substring(repoRemovedPath.indexOf("/") + 1, repoRemovedPath.indexOf("#")),
+                    line = repoRemovedPath.substring(repoRemovedPath.lastIndexOf("#") + 2, repoRemovedPath.length),
+                    sha = repoRemovedPath.substring(0, repoRemovedPath.indexOf("/"));
 
-            return { sha, emoji, lineUrl, path, line, fixed, message };
-        });
-    };
+                return { sha, emoji, lineUrl, path, line, fixed, message };
+            });
+        }
+    } catch (error) {
+        console.log('markdown-processor::getExistingCommentsList', error);
+    }
 
     return existingMarkdownCommentsList;
 };
@@ -32900,7 +32903,19 @@ let getEmberTestBody = async () => {
             status = `${FAILED_EMOJI} Minimum test coverage should be ${TEST_COVERAGE_THRESHOLD} %`;
             !Config.DISABLE_TEST && CommandExecutor.setFailAction(true);
         }
-        emberTestBody = `<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3><table><tr><th>TESTS</th><th>PASS</th><th>SKIP</th><th>FAIL</th>${COVERAGE ? '<th>COVERAGE</th>' : ''}</tr><tr><td>${TEST}</td><td>${PASS}</td><td>${SKIP}</td><td>${FAIL}</td>${COVERAGE ? `<td>${COVERAGE} %</td>` : ''}</tr></table>`;
+
+        let tableLabel = `<h3>${TEST_EMOJI} <ins>${TESTCASE_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3>`,
+            tableItemsList = [
+                { header: 'TESTS', value: TEST },
+                { header: 'PASS', value: PASS },
+                { header: 'SKIP', value: SKIP },
+                { header: 'FAIL', value: FAIL }
+            ];
+        COVERAGE && (tableItemsList = tableItemsList.push({ header: 'COVERAGE', value: COVERAGE }));
+        let tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`),
+            tableRows = tableItemsList.map(item => `<td>${item.value}</td>`);
+
+        emberTestBody = `${tableLabel}<table><tr>${tableHeaders}</tr><tr>${tableRows}</tr></table>`;
     }
 
     return emberTestBody;
@@ -32924,7 +32939,18 @@ let getAuditBody = async () => {
             !Config.DISABLE_AUDIT && CommandExecutor.setFailAction(true);
         }
 
-        npmAuditBody = `<h3>${VULNERABILITY_EMOJI} <ins>${VULNERABILITY_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3><table><tr><th>INFO</th><th>LOW</th><th>MODERATE</th><th>HIGH</th><th>CRITICAL</th></tr><tr><td>${info}</td><td>${low}</td><td>${moderate}</td><td>${high}</td><td>${critical}</td></tr></table>`;
+        let tableLabel = `<h3>${VULNERABILITY_EMOJI} <ins>${VULNERABILITY_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${status}</h3>`,
+            tableItemsList = [
+                { header: 'INFO', value: info },
+                { header: 'LOW', value: low },
+                { header: 'MODERATE', value: moderate },
+                { header: 'HIGH', value: high },
+                { header: 'CRITICAL', value: critical }
+            ],
+            tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`),
+            tableRows = tableItemsList.map(item => `<td>${item.value}</td>`);
+
+        npmAuditBody = `${tableLabel}<table><tr>${tableHeaders}</tr><tr>${tableRows}</tr></table>`;
     }
 
     return npmAuditBody;
@@ -32942,16 +32968,16 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
     if (!Config.DISABLE_ESLINT && overallPendingIssues > 0)
         CommandExecutor.setFailAction(true);
 
-    let eslintIssuesBody = `<h2>${ESLINT_EMOJI} <ins>${ESLINT_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${overallPendingIssues == 0 ? PASSED_EMOJI : FAILED_EMOJI} ${overallPendingIssues} - Pending</h2><br>`;
+    let eslintIssuesBody = `<h3>${ESLINT_EMOJI} <ins>${ESLINT_REPORT_HEADER}</ins> : ${INFO_EMOJI} :: ${overallPendingIssues == 0 ? PASSED_EMOJI : FAILED_EMOJI} ${overallPendingIssues} - Pending</h3><br />`;
 
     if (!!markdownComments.length) {
-        eslintIssuesBody = eslintIssuesBody.replace('</h2>', `<h4>(${ESLINT_COMMON_ISSUES_DISCLAIMER})</h4><br></h2>`);
-        eslintIssuesBody = markdownComments.reduce((acc, val) => {
+        eslintIssuesBody = eslintIssuesBody.replace('</h3><br />', `<h4>(${ESLINT_COMMON_ISSUES_DISCLAIMER})</h4></h3><br />`);
+        eslintIssuesBody = markdownComments.reduce((acc, val, index) => {
             const link = val.fixed ? val.lineUrl : GithubApiService.getCommentLineURL(val);
-            acc = acc + `* ${link}\r\n`;
-            acc = acc + `  ${val.emoji} : **${val.message}**\r\n---\r\n`;
+            acc = acc + `<li><a href=${link}>${link}</a>`;
+            acc = acc + `<p>${val.emoji} : <strong>${val.message}</strong></p></li>${markdownComments.length - 1 != index ? `<hr />` : `</ul>`}`;
             return acc;
-        }, eslintIssuesBody);
+        }, `${eslintIssuesBody}<ul id="eslint-issues-list">`);
     }
 
     return eslintIssuesBody + await getEmberTestBody() + await getAuditBody();
@@ -33069,6 +33095,14 @@ exports.requestLog = requestLog;
   })(XMLCharacterData);
 
 }).call(this);
+
+
+/***/ }),
+
+/***/ 928:
+/***/ (function(module) {
+
+module.exports = eval("require")("dom-parser");
 
 
 /***/ }),
