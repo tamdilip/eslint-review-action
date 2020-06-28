@@ -95,7 +95,7 @@ let getEmberTestBody = async () => {
         let tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`).join(''),
             tableRows = tableItemsList.map(item => `<td>${item.value}</td>`).join('');
 
-        emberTestBody = `${tableLabel}<ul><li><table><tr>${tableHeaders}</tr><tr>${tableRows}</tr></table></li></ul>`;
+        emberTestBody = `<hr />${tableLabel}<ul><li><table><tr>${tableHeaders}</tr><tr>${tableRows}</tr></table></li></ul>`;
     }
 
     return emberTestBody;
@@ -115,7 +115,7 @@ let getAuditBody = async () => {
             { info, low, moderate, high, critical } = vulnerabilities,
             status = `${PASSED_EMOJI} Threshold met`;
         if (vulnerabilities[VULNERABILITY_FAIL_ON] > 0) {
-            status = `${FAILED_EMOJI} ${VULNERABILITY_FAIL_ON.toUpperCase()} - threshold not met`;
+            status = `${FAILED_EMOJI} ${VULNERABILITY_FAIL_ON.toUpperCase()} - Threshold not met`;
             !Config.DISABLE_AUDIT && CommandExecutor.setFailAction(true);
         }
 
@@ -130,7 +130,7 @@ let getAuditBody = async () => {
             tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`).join(''),
             tableRows = tableItemsList.map(item => `<td>${item.value}</td>`).join('');
 
-        npmAuditBody = `<ul><li>${tableLabel}<table><tr>${tableHeaders}</tr><tr>${tableRows}</tr></table></li></ul>`;
+        npmAuditBody = `<hr />${tableLabel}<ul><li><table><tr>${tableHeaders}</tr><tr>${tableRows}</tr></table></li></ul>`;
     }
 
     return npmAuditBody;
