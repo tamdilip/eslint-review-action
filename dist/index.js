@@ -33230,7 +33230,7 @@ let getEmberTestBody = async () => {
             ];
         COVERAGE && tableItemsList.push({ header: 'COVERAGE', value: `${COVERAGE} %` });
         let tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`).join(''),
-            tableRows = tableItemsList.map(item => `<td>${item.value}</td>`).join('');
+            tableRows = tableItemsList.map(item => `<td align="center">${item.value}</td>`).join('');
 
         emberTestBody = `<hr />${tableLabel}<ul><li><table><tr>${tableHeaders}</tr><tr>${tableRows}</tr></table></li></ul>`;
     }
@@ -33265,7 +33265,7 @@ let getAuditBody = async () => {
                 { header: 'CRITICAL', value: critical }
             ],
             tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`).join(''),
-            tableRows = tableItemsList.map(item => `<td>${item.value}</td>`).join('');
+            tableRows = tableItemsList.map(item => `<td align="center">${item.value}</td>`).join('');
 
         npmAuditBody = `<hr />${tableLabel}<ul><li><table><tr>${tableHeaders}</tr><tr>${tableRows}</tr></table></li></ul>`;
     }
