@@ -90,7 +90,7 @@ let getEmberTestBody = async () => {
                 { header: 'SKIP', value: SKIP },
                 { header: 'FAIL', value: FAIL }
             ];
-        COVERAGE && (tableItemsList = tableItemsList.push({ header: 'COVERAGE', value: COVERAGE }));
+        COVERAGE && tableItemsList.push({ header: 'COVERAGE', value: COVERAGE });
         let tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`),
             tableRows = tableItemsList.map(item => `<td>${item.value}</td>`);
 
