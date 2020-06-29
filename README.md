@@ -114,15 +114,15 @@ repo-token:
 ## Actions Output Visuals
 #### 💬 Inline comment
 For eslint issues occurred at actual changed portion of lines part of the pull-request and the visible diff section as below -
-![Inline Comment](https://raw.githubusercontent.com/tamdilip/eslint-review-action/feature/error-counts-and-file-miss/doc/Inline_Comment.png "Inline Comment")
+![Inline Comment](https://raw.githubusercontent.com/tamdilip/eslint-review-action/master/doc/Inline_Comment.png "Inline Comment")
 
 #### 💬 Grouped common issue comment
 For eslint issues occurred at other than changed portion of lines part of the pull-request and not at the visible diff section, along with test coverage and vulnerability report as below - 
-![Grouped common issue comment](https://raw.githubusercontent.com/tamdilip/eslint-review-action/feature/error-counts-and-file-miss/doc/Grouped_Issue_Comment.png "Grouped common issue comment")
+![Grouped common issue comment](https://raw.githubusercontent.com/tamdilip/eslint-review-action/master/doc/Grouped_Issue_Comment.png "Grouped common issue comment")
 
 #### 💬 Pull request action run status
 Incase of any issues, the pull-request merge status will be displayed as below from the action run - 
-![Pull request action run status](https://raw.githubusercontent.com/tamdilip/eslint-review-action/feature/error-counts-and-file-miss/doc/Review_Action_Status.png "Pull request action run status")
+![Pull request action run status](https://raw.githubusercontent.com/tamdilip/eslint-review-action/master/doc/Review_Action_Status.png "Pull request action run status")
 
 ## Local setup and development
 ```sh
