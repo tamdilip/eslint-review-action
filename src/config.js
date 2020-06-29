@@ -16,6 +16,7 @@ module.exports = {
     INFO_EMOJI: core.getInput('info-emoji'),
     PASSED_EMOJI: core.getInput('pass-emoji'),
     REPO_TOKEN: core.getInput('repo-token'),
+    REPORT_NOT_FOUND: 'REPORT_NOT_FOUND',
     TEST_COVERAGE_THRESHOLD: core.getInput('test-coverage-threshold'),
     TEST_EMOJI: core.getInput('test-emoji'),
     TEST_REPORT_PATH: 'test_report.xml',
