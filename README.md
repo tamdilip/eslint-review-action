@@ -124,6 +124,14 @@ For eslint issues occurred at other than changed portion of lines part of the pu
 Incase of any issues, the pull-request merge status will be displayed as below from the action run - 
 ![Pull request action run status](https://raw.githubusercontent.com/tamdilip/eslint-review-action/feature/error-counts-and-file-miss/doc/Review_Action_Status.png "Pull request action run status")
 
+## Local setup and development
+```sh
+$ git clone https://github.com/tamdilip/eslint-review-action.git
+$ cd eslint-review-action
+$ npm install
+$ ncc build index.js
+```
+
 # References
  - [Github actions annotations disable issue](https://github.community/t/disable-github-actions-check-runs-from-annotating-files/118193)
  - [Ocktokit - Github REST API SDK](https://octokit.github.io/rest.js/v18)
