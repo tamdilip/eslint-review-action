@@ -1,42 +1,34 @@
+const EslintReportProcessor = require('./src/eslint-report-processor');
+const MarkdownProcessor = require('./src/markdown-processor');
+const GithubApiService = require('./src/github-api-service');
+const CommandExecutor = require('./src/command-executor');
+const Config = require('./src/config');
+
 async function runScript() {
-    const core = require('@actions/core');
-    const github = require('@actions/github');
-    const path = require('path');
-    const url = require('url');
-    const fs = require('fs');
 
-    const repoToken = core.getInput('repo-token');
-    const octokit = new github.GitHub(repoToken);
-    const context = github.context;
-    const { repo: { owner, repo } } = context;
+    const changedFiles = await GithubApiService.getFilesChanged();
+    const filenames = changedFiles.map(f => f.filename);
 
-    const eventPath = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-    const pull_number = eventPath.pull_request.number;
+    !Config.DISABLE_ESLINT && await CommandExecutor.runESlint(filenames);
+    !Config.DISABLE_TEST && await CommandExecutor.runEmberTest();
+    !Config.DISABLE_AUDIT && await CommandExecutor.runNpmAudit();
 
-    const changedFiles = await octokit.pulls.listFiles({
-        owner,
-        repo,
-        pull_number
-    });
-    const filename = changedFiles.data[0].filename;
+    await EslintReportProcessor.createOrUpdateEslintComment(changedFiles);
 
-    const reportPath = path.resolve('eslint_report.json');
-    const reportFile = fs.readFileSync(reportPath, 'utf-8')
-    const reportContents = JSON.parse(reportFile);
+    let { body: existingMarkdownComment = '', id: comment_id } = await GithubApiService.getCommonGroupedComment(),
+        existingMarkdownCommentsList = await MarkdownProcessor.getExistingCommentsList(existingMarkdownComment),
+        newMarkdownCommentsList = GithubApiService.getFailedComments(),
+        updatedCommonCommentsList = MarkdownProcessor.getUpdatedCommonCommentsList(existingMarkdownCommentsList, newMarkdownCommentsList),
+        markdownComments = updatedCommonCommentsList.filter(comment => comment.fixed).concat(newMarkdownCommentsList);
 
-    const url_parts = url.parse(changedFiles.data[0].contents_url, true);
-    const commit_id = url_parts.query.ref;
+    const body = await MarkdownProcessor.getGroupedCommentMarkdown(markdownComments);
 
-    octokit.pulls.createComment({
-        owner,
-        repo,
-        pull_number,
-        body: reportContents.filter(es => es.errorCount > 0)[0].messages[0].message,
-        commit_id,
-        path: filename,
-        line: reportContents.filter(es => es.errorCount > 0)[0].messages[0].line
-    });
+    if (existingMarkdownComment)
+        GithubApiService.updateCommonComment({ comment_id, body });
+    else
+        GithubApiService.createCommonComment(body);
 
+    CommandExecutor.exitProcess();
 }
 
 runScript();

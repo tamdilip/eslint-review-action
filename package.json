@@ -1,7 +1,7 @@
 {
-  "name": "eslint-pull-request",
+  "name": "eslint-review-action",
   "version": "1.0.0",
-  "description": "",
+  "description": "eslint specific file changes in a pull-request and add review comments, also with test coverage and npm vulnerabilities",
   "main": "index.js",
   "scripts": {
     "build": "ncc build index.js",
@@ -9,18 +9,32 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tamdilip/eslint-pull-request.git"
+    "url": "git+https://github.com/tamdilip/eslint-review-action.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "eslint",
+    "ember js",
+    "ember",
+    "ember-cli-code-coverage",
+    "test",
+    "coverage",
+    "vulnerability",
+    "pull-request",
+    "review",
+    "comment"
+  ],
+  "author": "Dilipan Somasundaram",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/tamdilip/eslint-pull-request/issues"
+    "url": "https://github.com/tamdilip/eslint-review-action/issues"
   },
-  "homepage": "https://github.com/tamdilip/eslint-pull-request#readme",
+  "homepage": "https://github.com/tamdilip/eslint-review-action#readme",
   "dependencies": {
     "@actions/core": "^1.2.4",
+    "@actions/exec": "^1.0.4",
     "@actions/github": "^2.2.0",
-    "@zeit/ncc": "^0.22.2"
+    "@zeit/ncc": "^0.22.2",
+    "dom-parser": "^0.1.6",
+    "xml2js": "^0.4.23"
   }
 }

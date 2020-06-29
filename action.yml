@@ -1,9 +1,85 @@
-name: 'eslint-pull-request'
-description: 'eslint specific file changes in a pull-request and add review comments'
+name: 'eslint-review-action'
+author: 'Dilipan Somasundaram'
+description: 'eslint specific file changes in a pull-request and add review comments, also with test coverage and npm vulnerabilities'
+branding:
+  icon: 'git-pull-request'
+  color: 'yellow'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
 inputs:
   repo-token:
     description: 'Token used to interact with the Github API.'
     required: true
-runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  bot-user-name:
+    description: 'Set username of the token provide to filter out comments'
+    required: false
+    default: ''
+  disable-eslint:
+    description: 'Set true to stop linting.'
+    required: false
+    default: 'false'
+  disable-ember-test:
+    description: 'Set true to stop ember testing.'
+    required: false
+    default: 'false'
+  disable-npm-audit:
+    description: 'Set true to stop npm auditing.'
+    required: false
+    default: 'false'
+  fail-on-test:
+    description: 'Set true to fail the pull-request merge status, if ember test has failing test cases.'
+    required: false
+    default: 'false'
+  disable-test-coverage:
+    description: 'Set true to stop ember coverage execution, when ember test is enabled.'
+    required: false
+    default: 'false'
+  test-coverage-threshold:
+    description: 'Minimum test coverage percentage to pass the pull-request.'
+    required: false
+    default: '0'
+  vulnerability-fail-on:
+    description: 'Set vulnerability criteria to fail the pull-request merge status, OPTIONS: INFO/LOW/MODERATE/HIGH/CRITICAL'
+    required: false
+    default: ''
+  pass-emoji:
+    description: 'Emoji to indicate fixed eslint issue.'
+    required: false
+    default: '✔️'
+  fail-emoji:
+    description: 'Emoji to indicate failed eslint issue.'
+    required: false
+    default: '❌'
+  info-emoji:
+    description: 'Emoji to indicate status message.'
+    required: false
+    default: '📢'
+  eslint-emoji:
+    description: 'Emoji for eslint header label.'
+    required: false
+    default: '🛠'
+  test-emoji:
+    description: 'Emoji for test header label.'
+    required: false
+    default: '🔬'
+  vulnerability-emoji:
+    description: 'Emoji for vulnerability header label.'
+    required: false
+    default: '👽'
+  eslint-report-header:
+    description: 'Header text for Eslint issues.'
+    required: false
+    default: 'ESLINT ISSUES'
+  test-report-header:
+    description: 'Header text for Test case report.'
+    required: false
+    default: 'TEST CASE REPORT'
+  vulnerability-report-header:
+    description: 'Header text for node dependencies vulnerability report.'
+    required: false
+    default: 'VULNERABILITY REPORT'
+  eslint-common-issues-disclaimer:
+    description: 'Disclaimer text to explain about the common grouped set of eslint issue comment.'
+    required: false
+    default: 'issues listed below are in areas other than visible changed portion of lines'
