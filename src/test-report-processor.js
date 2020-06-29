@@ -40,6 +40,7 @@ let getCoveragePercentage = () => {
             reportContents = JSON.parse(reportFile);
         coveragePercentage = reportContents.total.lines.pct;
     } catch (error) {
+        coveragePercentage = Config.REPORT_NOT_FOUND;
         console.log('test-report-processor::getCoveragePercentage', error);
     }
 

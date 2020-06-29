@@ -79,7 +79,7 @@ let getEmberTestBody = async () => {
             status = `${FAILED_EMOJI} Testcases failing`;
             !Config.DISABLE_TEST && CommandExecutor.setFailAction(true);
         }
-        if (COVERAGE < TEST_COVERAGE_THRESHOLD) {
+        if (COVERAGE !== Config.REPORT_NOT_FOUND && COVERAGE < TEST_COVERAGE_THRESHOLD) {
             status = `${FAILED_EMOJI} Minimum test coverage should be ${TEST_COVERAGE_THRESHOLD} %`;
             !Config.DISABLE_TEST && CommandExecutor.setFailAction(true);
         }
@@ -91,7 +91,7 @@ let getEmberTestBody = async () => {
                 { header: 'SKIP', value: SKIP },
                 { header: 'FAIL', value: FAIL }
             ];
-        COVERAGE && tableItemsList.push({ header: 'COVERAGE', value: `${COVERAGE} %` });
+        COVERAGE !== Config.REPORT_NOT_FOUND && COVERAGE && tableItemsList.push({ header: 'COVERAGE', value: `${COVERAGE} %` });
         let tableHeaders = tableItemsList.map(item => `<th><h6>${item.header}</h6></th>`).join(''),
             tableRows = tableItemsList.map(item => `<td align="center">${item.value}</td>`).join('');
 
@@ -143,7 +143,7 @@ let getAuditBody = async () => {
  * @param {Array} markdownComments error comments list occured at unchanged portion of lines
  */
 let getGroupedCommentMarkdown = async (markdownComments) => {
-    const { length: overallPendingIssues } = EslintReportProcessor.getErrorFiles();
+    const { length: overallPendingIssues } = EslintReportProcessor.getErrorFiles().flatMap(e => e.messages);
 
     if (!Config.DISABLE_ESLINT && overallPendingIssues > 0)
         CommandExecutor.setFailAction(true);
