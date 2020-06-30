@@ -1,4 +1,4 @@
-# 🛠 eslint-review-action
+# 🛠 [eslint-review-action](https://github.com/tamdilip/eslint-review-action.git)
 Github Action to review code changes on a Pull-Request and add corresponding review comments for a clean Merge process.
 
 This action repo mainly targets on Ember app, does eslint on only changed set of files in a pull-request and cosecutive commits. Also does ember testing along with code coverage for entire app, if ember-cli-code-coverage setup is configured. Together runs npm audit check to get the vulnerability report.
