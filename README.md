@@ -30,7 +30,7 @@ Incase of consuming this action by moving to private repo (`secrets.ACTION_TOKEN
           repo-token: ${{ secrets.ACTION_TOKEN }}
 ```
 
-#### Dynamic inputs and configurations ( add under `with:`)
+### Dynamic inputs and configurations ( add under `with:`)
 Most of the action items can be configured dynamically as per the need with all these available set of config inputs here -  [action.yml](https://github.com/tamdilip/eslint-review-action/blob/master/action.yml).
 
 <details>
@@ -114,6 +114,7 @@ repo-token:
 </code></pre>
 </details>
 
+---
 
 ## Actions Output Visuals
 #### 💬 Inline comment
