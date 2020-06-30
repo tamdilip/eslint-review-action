@@ -5,6 +5,7 @@ This action repo mainly targets on Ember app, does eslint on only changed set of
 
 ### 🕹 Usage: 
 Add the following to your workflow `.yml` file in app (`secrets.GITHUB_TOKEN` is the default Personal Access Token(PAT) generated):
+
 ```yaml
 name: Run eslint review action repo
 uses: tamdilip/eslint-review-action@v1
@@ -12,7 +13,9 @@ with:
     repo-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+
 Incase of consuming this action by moving to private repo (`secrets.ACTION_TOKEN` should be a new private token to clone action):
+
 ```yaml
 - name: Checkout GitHub Action Repo
         uses: actions/checkout@v2
@@ -27,7 +30,7 @@ Incase of consuming this action by moving to private repo (`secrets.ACTION_TOKEN
           repo-token: ${{ secrets.ACTION_TOKEN }}
 ```
 
-#### Dynamic inputs and configurations ( under `with:`)
+#### Dynamic inputs and configurations ( add under `with:`)
 Most of the action items can be configured dynamically as per the need with all these available set of config inputs here -  [action.yml](https://github.com/tamdilip/eslint-review-action/blob/master/action.yml).
 
 <details>
@@ -114,14 +117,17 @@ repo-token:
 ## Actions Output Visuals
 #### 💬 Inline comment
 For eslint issues occurred at actual changed portion of lines part of the pull-request and the visible diff section as below -
+
 ![Inline Comment](https://raw.githubusercontent.com/tamdilip/eslint-review-action/master/doc/Inline_Comment.png "Inline Comment")
 
 #### 💬 Grouped common issue comment
 For eslint issues occurred at other than changed portion of lines part of the pull-request and not at the visible diff section, along with test coverage and vulnerability report as below - 
+
 ![Grouped common issue comment](https://raw.githubusercontent.com/tamdilip/eslint-review-action/master/doc/Grouped_Issue_Comment.png "Grouped common issue comment")
 
 #### 💬 Pull request action run status
 Incase of any issues, the pull-request merge status will be displayed as below from the action run - 
+
 ![Pull request action run status](https://raw.githubusercontent.com/tamdilip/eslint-review-action/master/doc/Review_Action_Status.png "Pull request action run status")
 
 ## Local setup and development
