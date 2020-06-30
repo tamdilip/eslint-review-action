@@ -34,7 +34,7 @@ Incase of consuming this action by moving to private repo (`secrets.ACTION_TOKEN
 Most of the action items can be configured dynamically as per the need with all these available set of config inputs here -  [action.yml](https://github.com/tamdilip/eslint-review-action/blob/master/action.yml).
 
 <details>
-<summary>All available inputs</summary>
+    <summary><i><strong>All available inputs</strong></i></summary>
 <pre><code>
 repo-token:
     description: 'Token used to interact with the Github API.'
@@ -113,6 +113,7 @@ repo-token:
     default: 'issues listed below are in areas other than visible changed portion of lines'
 </code></pre>
 </details>
+
 
 ## Actions Output Visuals
 #### 💬 Inline comment
