@@ -36,7 +36,7 @@ Most of the action items can be configured dynamically as per the need with all 
 <details>
     <summary><i><strong>All available inputs</strong></i></summary>
 <pre><code>
-repo-token:
+  repo-token:
     description: 'Token used to interact with the Github API.'
     required: true
   bot-user-name:
