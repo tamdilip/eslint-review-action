@@ -5,7 +5,7 @@ branding:
   icon: 'git-pull-request'
   color: 'yellow'
 runs:
-  using: 'node12'
+  using: 'node14'
   main: 'dist/index.js'
 inputs:
   repo-token:
