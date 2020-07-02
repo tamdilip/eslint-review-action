@@ -10,7 +10,7 @@ Add the following to your workflow `.yml` file in app (`secrets.GITHUB_TOKEN` is
 name: Run eslint review action repo
 uses: tamdilip/eslint-review-action@v1
 with:
-    repo-token: ${{ secrets.GITHUB_TOKEN }}
+  repo-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 
@@ -20,14 +20,14 @@ Incase of consuming this action by moving to private repo (`secrets.ACTION_TOKEN
 name: Checkout GitHub Action Repo
 uses: actions/checkout@v2
 with:
-    repository: tamdilip/eslint-review-action
-    ref: v1
-    token: ${{ secrets.ACTION_TOKEN }}
-    path: .github/actions/eslint-review-action
+  repository: tamdilip/eslint-review-action
+  ref: v1
+  token: ${{ secrets.ACTION_TOKEN }}
+  path: .github/actions/eslint-review-action
 name: Run eslint-review-action action
 uses: ./.github/actions/eslint-review-action
 with:
-    repo-token: ${{ secrets.ACTION_TOKEN }}
+  repo-token: ${{ secrets.ACTION_TOKEN }}
 ```
 
 Complete working sample `.github/workflow/action.yml`:
