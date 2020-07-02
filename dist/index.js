@@ -12198,7 +12198,7 @@ const emberTestOptions = {};
 emberTestOptions.listeners = {
     stdout: (data) => {
         console.log('EmberTest::stdout--', data.toString());
-        emberTestReportXmlString = data.toString();
+        emberTestReportXmlString += data.toString();
     },
     stderr: (data) => {
         console.log('EmberTest::stderr--', data.toString());
@@ -12225,7 +12225,6 @@ let runEmberTest = async () => {
 
 let npmAuditJson = '';
 let getNpmAuditJson = () => {
-    console.log('*****npmAuditJson********', npmAuditJson);
     return JSON.parse(npmAuditJson);
 };
 

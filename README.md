@@ -30,6 +30,39 @@ with:
     repo-token: ${{ secrets.ACTION_TOKEN }}
 ```
 
+Complete working sample `.github/workflow/action.yml`:
+
+```yaml
+name: Pull request review
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  eslint:
+    name: ESLINT REVIEW ACTION
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Install Dependencies
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - run: npm install
+      - name: Checkout GitHub Action Repo
+        uses: tamdilip/eslint-review-action@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
 ### Dynamic inputs and configurations ( add under `with:`)
 Most of the action items can be configured dynamically as per the need with all these available set of config inputs here -  [action.yml](https://github.com/tamdilip/eslint-review-action/blob/master/action.yml).
 
