@@ -4,7 +4,7 @@ const Config = require('./config');
 
 
 const { context } = github,
-    octokit = new github.GitHub(Config.REPO_TOKEN),
+    octokit = github.getOctokit(Config.REPO_TOKEN),
     { repo: { owner, repo }, issue: { number: issue_number }, sha } = context,
     { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
@@ -60,7 +60,6 @@ let getCommonGroupedComment = async () => {
         issue_number
     }) || {};
 
-    console.log('commonGroupedComment', commonGroupedComment);
     return commonGroupedComment;
 };
 
@@ -83,10 +82,10 @@ let getFilesChanged = async () => {
  * Returns a list of inline comments under a pull-request
  */
 let getCommentsInPR = async () => {
-    let { data: commentsInPR = [] } = await octokit.pulls.listComments({
+    let { data: commentsInPR = [] } = await octokit.pulls.listReviewComments({
         owner,
         repo,
-        pull_number,
+        pull_number
     }) || [];
 
     if (Config.BOT_USER_NAME)
@@ -102,7 +101,7 @@ let getCommentsInPR = async () => {
  * @param {Object} param0 required message, commit,id, file path
  */
 let commentEslistError = async ({ message, commit_id, path }) => {
-    return await octokit.pulls.createComment({
+    return await octokit.pulls.createReviewComment({
         owner,
         repo,
         pull_number,

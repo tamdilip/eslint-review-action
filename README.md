@@ -10,7 +10,7 @@ Add the following to your workflow `.yml` file in app (`secrets.GITHUB_TOKEN` is
 name: Run eslint review action repo
 uses: tamdilip/eslint-review-action@v1
 with:
-    repo-token: ${{ secrets.GITHUB_TOKEN }}
+  repo-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 
@@ -20,14 +20,47 @@ Incase of consuming this action by moving to private repo (`secrets.ACTION_TOKEN
 name: Checkout GitHub Action Repo
 uses: actions/checkout@v2
 with:
-    repository: tamdilip/eslint-review-action
-    ref: v1
-    token: ${{ secrets.ACTION_TOKEN }}
-    path: .github/actions/eslint-review-action
+  repository: tamdilip/eslint-review-action
+  ref: v1
+  token: ${{ secrets.ACTION_TOKEN }}
+  path: .github/actions/eslint-review-action
 name: Run eslint-review-action action
 uses: ./.github/actions/eslint-review-action
 with:
-    repo-token: ${{ secrets.ACTION_TOKEN }}
+  repo-token: ${{ secrets.ACTION_TOKEN }}
+```
+
+Complete working sample `.github/workflow/action.yml`:
+
+```yaml
+name: Pull request review
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  eslint:
+    name: ESLINT REVIEW ACTION
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Install Dependencies
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - run: npm install
+      - name: Checkout GitHub Action Repo
+        uses: tamdilip/eslint-review-action@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Dynamic inputs and configurations ( add under `with:`)
@@ -145,6 +178,7 @@ $ ncc build index.js
  - [Ocktokit - Github REST API SDK](https://octokit.github.io/rest.js/v18)
  - [Caching node modules](https://help.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows)
  - [Github Actions Script](https://github.com/actions/github-script)
+ - [Github Actions toolkit-github](https://github.com/actions/toolkit/tree/master/packages/github)
  - [ember-cli-code-coverage](https://github.com/kategengler/ember-cli-code-coverage)
  - [dom-parser](https://github.com/ershov-konst/dom-parser)
  - [xml2js](https://github.com/Leonidas-from-XIV/node-xml2js)

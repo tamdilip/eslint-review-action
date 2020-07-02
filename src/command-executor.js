@@ -49,7 +49,7 @@ const emberTestOptions = {};
 emberTestOptions.listeners = {
     stdout: (data) => {
         console.log('EmberTest::stdout--', data.toString());
-        emberTestReportXmlString = data.toString();
+        emberTestReportXmlString += data.toString();
     },
     stderr: (data) => {
         console.log('EmberTest::stderr--', data.toString());
@@ -88,7 +88,7 @@ const npmAuditOptions = {};
 npmAuditOptions.listeners = {
     stdout: (data) => {
         console.log('npmAudit::stdout--', data.toString());
-        npmAuditJson = data.toString();
+        npmAuditJson += data.toString();
     },
     stderr: (data) => {
         console.log('npmAudit::stderr--', data.toString());
