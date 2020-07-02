@@ -12970,7 +12970,7 @@ const Config = __webpack_require__(659);
 
 
 const { context } = github,
-    octokit = new github.GitHub(Config.REPO_TOKEN),
+    octokit = github.getOctokit(Config.REPO_TOKEN),
     { repo: { owner, repo }, issue: { number: issue_number }, sha } = context,
     { pull_request: { number: pull_number } } = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
