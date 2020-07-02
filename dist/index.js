@@ -12223,7 +12223,7 @@ let runEmberTest = async () => {
 };
 
 
-let npmAuditJson;
+let npmAuditJson = '';
 let getNpmAuditJson = () => {
     console.log('*****npmAuditJson********', npmAuditJson);
     return JSON.parse(npmAuditJson);
