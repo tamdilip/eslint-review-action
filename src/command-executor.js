@@ -74,7 +74,7 @@ let runEmberTest = async () => {
 };
 
 
-let npmAuditJson = '';
+let npmAuditJson;
 let getNpmAuditJson = () => {
     return JSON.parse(npmAuditJson);
 };
@@ -88,7 +88,7 @@ const npmAuditOptions = {};
 npmAuditOptions.listeners = {
     stdout: (data) => {
         console.log('npmAudit::stdout--', data.toString());
-        npmAuditJson = data.toString();
+        npmAuditJson += data.toString();
     },
     stderr: (data) => {
         console.log('npmAudit::stderr--', data.toString());
