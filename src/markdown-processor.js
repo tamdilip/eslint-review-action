@@ -160,7 +160,10 @@ let getGroupedCommentMarkdown = async (markdownComments) => {
         }, `${eslintIssuesBody}<ul id="eslint-issues-list">`);
     }
 
-    return eslintIssuesBody + await getEmberTestBody() + await getAuditBody();
+    const emberTestBody = (!Config.DISABLE_TEST && await getEmberTestBody()) || '',
+        auditBody = (!Config.DISABLE_AUDIT && await getAuditBody()) || '';
+
+    return eslintIssuesBody + emberTestBody + auditBody;
 };
 
 /**
